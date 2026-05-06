@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Customer Information Modification — Prototypes</title>
+<style>
+  body{font-family:'Kanit',system-ui,sans-serif;background:#F5F5F5;margin:0;padding:48px 24px;color:#000}
+  .container{max-width:720px;margin:0 auto}
+  h1{font-size:32px;font-weight:700;margin-bottom:8px}
+  .lede{color:#6E767A;font-size:14px;margin-bottom:32px}
+  .card{background:#fff;border:1px solid #E5E7EA;padding:20px 24px;margin-bottom:12px;display:block;text-decoration:none;color:#000;transition:all .15s}
+  .card:hover{border-color:#000;transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+  .card .label{font-size:11px;color:#D26132;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+  .card h3{font-size:18px;font-weight:600;margin-bottom:4px}
+  .card p{font-size:13px;color:#6E767A}
+  .pattern{display:flex;height:6px;margin-bottom:32px}
+  .pattern span{flex:1}
+  .pattern span:nth-child(1){background:#D26132}
+  .pattern span:nth-child(2){background:#DDC69A}
+  .pattern span:nth-child(3){background:#6E767A}
+  .pattern span:nth-child(4){background:#B4BBBF}
+  .demo{background:#FFF8F4;border-left:4px solid #D26132;padding:14px 18px;font-size:13px;margin-top:24px}
+  .demo b{display:block;color:#D26132;margin-bottom:6px}
+  .demo code{background:#000;color:#fff;padding:2px 8px;font-family:monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="pattern"><span></span><span></span><span></span><span></span></div>
+  <h1>Customer Information Modification</h1>
+  <p class="lede">Prototypes & Documentation · Noble Development</p>
+
+  <a class="card" href="PI-Customer-App-V2.html">
+    <div class="label">⭐ Main Prototype (V2)</div>
+    <h3>PI Customer Self-Service Portal</h3>
+    <p>Full 5-step flow · Identity verify · Change form · Review & sign · Success</p>
+  </a>
+
+  <a class="card" href="PI-Customer-App.html">
+    <div class="label">Prototype V1 (Legacy)</div>
+    <h3>PI Customer App — V1</h3>
+    <p>เวอร์ชันแรก สำหรับเปรียบเทียบ</p>
+  </a>
+
+  <a class="card" href="A1-Identity-Verify-Mockup.html">
+    <div class="label">Component Mockup</div>
+    <h3>A1 — Identity Verification Mockup</h3>
+    <p>Mockup ขั้นตอนยืนยันตัวตน (รุ่นเก่า)</p>
+  </a>
+
+  <a class="card" href="A3-Prototype-Signature-PDF.html">
+    <div class="label">Component Demo</div>
+    <h3>A3 — Signature & PDF Demo</h3>
+    <p>ทดลองส่วน signature canvas + PDF generation</p>
+  </a>
+
+  <a class="card" href="System-Architecture.html">
+    <div class="label">Documentation</div>
+    <h3>System Architecture</h3>
+    <p>Diagram + flow ของระบบ</p>
+  </a>
+
+  <a class="card" href="https://github.com/POnoble/customer-info-modification/blob/main/PI-Change-Self-Service-Spec.md">
+    <div class="label">Spec Document</div>
+    <h3>PI Change Self-Service Spec</h3>
+    <p>Detailed specification (Markdown · เปิดใน GitHub)</p>
+  </a>
+
+  <div class="demo">
+    <b>🔑 Demo Data สำหรับ Main Prototype</b>
+    เลขบัตร: <code>1102001943802</code><br>
+    วันเกิด: <code>14/05/1990</code><br>
+    OTP: <code>123456</code> (ดูที่ Demo Controls มุมขวาบน)
+  </div>
+</div>
+</body>
+</html>
