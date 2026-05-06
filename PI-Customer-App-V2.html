@@ -1,0 +1,2468 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>Customer Information Modification · Noble</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+:root{
+  --black:#000;
+  --white:#fff;
+  --cement:#6E767A;
+  --brick:#D26132;
+  --sand:#DDC69A;
+  --steel:#B4BBBF;
+  --line:#E5E7EA;
+  --bg:#F5F5F5;
+  --ok:#1F8B4C;
+  --warn:#E0A800;
+  --err:#C0392B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Kanit','Noto Sans Thai',system-ui,sans-serif;background:#fff;color:#000;font-weight:300;line-height:1.5;min-height:100vh}
+
+/* === Header (matches noblehome.com style) === */
+.site-header{height:72px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center}
+.logo-box{border:1.5px solid #000;padding:6px 14px;font-weight:700;font-size:15px;letter-spacing:.5px}
+.header-right{display:flex;align-items:center;gap:24px;color:var(--cement)}
+.header-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+.header-icon:hover{color:#000}
+.lang{font-size:13px;font-weight:500;color:#000}
+.lang-toggle{display:inline-flex;align-items:center;gap:6px}
+.lang-toggle button{background:none;border:0;font:inherit;font-size:13px;font-weight:400;color:var(--cement);cursor:pointer;padding:2px 6px;font-family:inherit}
+.lang-toggle button.active{color:#000;font-weight:600;border-bottom:2px solid var(--brick)}
+.lang-toggle button:hover{color:#000}
+
+/* === Main wrapper === */
+.main{background:var(--bg);min-height:calc(100vh - 72px - 100px);padding:48px 24px 80px}
+.container{max-width:1100px;margin:0 auto}
+
+/* === Stepper === */
+.stepper{display:flex;align-items:flex-start;justify-content:center;margin-bottom:48px;flex-wrap:wrap;gap:0}
+.step{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;padding:0 8px}
+.step .circle{width:30px;height:30px;border-radius:50%;background:#D9D9D9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:'Kanit';position:relative;z-index:2;transition:all .2s}
+.step.active .circle{background:var(--brick);box-shadow:0 0 0 4px rgba(210,97,50,.15)}
+.step.done .circle{background:var(--brick)}
+.step .label{margin-top:10px;font-size:12px;color:var(--cement);max-width:100px;line-height:1.3;font-weight:400}
+.step.active .label,.step.done .label{color:#000;font-weight:500}
+.step-line{flex:0 0 80px;height:2px;background:#D9D9D9;margin-top:14px;border-style:dotted;border-width:0;border-top:1px dotted #B4BBBF;background:transparent}
+.step-line.done{border-top-color:var(--brick)}
+
+/* === Page title === */
+.page-title{text-align:center;margin-bottom:32px}
+.page-title h1{font-size:32px;font-weight:700;letter-spacing:-.5px}
+.page-title .sub{color:var(--cement);font-size:14px;margin-top:8px;line-height:1.6}
+.page-title .sub b{color:#000;font-weight:500}
+
+/* === Form box (centered narrow) === */
+.form-box{max-width:540px;margin:0 auto}
+.form-group{margin-bottom:20px}
+.form-label{font-size:13px;color:var(--cement);font-weight:400;margin-bottom:4px;display:block}
+.form-input{width:100%;border:0;border-bottom:1px solid #000;padding:8px 4px;font:inherit;font-size:16px;background:transparent;outline:none;font-weight:400}
+.form-input:focus{border-bottom-width:2px;border-bottom-color:var(--brick)}
+.form-input.error{border-bottom-color:var(--err)}
+.form-error{color:var(--err);font-size:12px;margin-top:4px;font-weight:400}
+.form-help{color:var(--cement);font-size:12px;margin-top:6px}
+
+.btn{height:44px;padding:0 36px;font:inherit;font-weight:500;font-size:14px;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;letter-spacing:.5px}
+.btn.primary{background:#000;color:#fff}
+.btn.primary:hover{background:#333}
+.btn.outline{background:#fff;color:#000;border:1px solid #000}
+.btn.outline:hover{background:#000;color:#fff}
+.btn:disabled{background:#E5E7EA;color:#9aa1a6;cursor:not-allowed}
+.btn-row{display:flex;flex-direction:row;justify-content:center;align-items:center;gap:16px;margin-top:32px;flex-wrap:wrap}
+.btn-row .btn{min-width:180px}
+.btn-row .step3-hint{flex-basis:100%;text-align:center;font-size:12px;color:var(--cement);margin-top:8px;font-weight:400;order:99}
+.field-card.incomplete{border-color:var(--err)}
+.field-card.incomplete .field-name{color:var(--err)}
+@media (max-width: 700px){
+  .btn-row{flex-direction:column;align-items:stretch;padding:0 24px}
+  .btn-row .btn{min-width:0;width:100%}
+}
+
+/* === OTP === */
+.otp-info{text-align:center;margin-bottom:24px;font-size:14px}
+.otp-info b{font-weight:600}
+.otp-meta{text-align:center;color:var(--cement);font-size:13px;margin-top:16px}
+.resend-btn{background:none;border:0;font:inherit;color:var(--brick);font-weight:500;cursor:pointer;text-decoration:underline}
+.resend-btn:disabled{color:var(--cement);text-decoration:none;cursor:not-allowed}
+
+/* === Customer info bar (Step 2) === */
+.cust-info-bar{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:24px;font-size:13px;flex-wrap:wrap;gap:8px}
+.cust-info-bar b{font-weight:500}
+
+/* === Selection header === */
+.sel-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.sel-header h2{font-size:24px;font-weight:700}
+.sel-header .select-all{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.checkbox{width:20px;height:20px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;cursor:pointer;transition:all .1s}
+.checkbox.checked{background:#000;color:#fff;font-weight:700}
+.checkbox.checked::after{content:"✓";font-size:13px}
+.checkbox.locked{background:#E5E7EA;border-color:var(--steel);cursor:not-allowed}
+.checkbox.locked.checked{background:var(--steel)}
+
+/* === Unit grid === */
+.sel-sub{font-size:12px;color:var(--cement);margin-bottom:24px;line-height:1.5}
+.unit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.unit-card{border:1px solid var(--line);padding:18px 22px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;background:#fff;transition:all .15s}
+.unit-card:hover{border-color:#000}
+.unit-card.checked{border:2px solid #000;padding:17px 21px}
+.unit-card.locked{cursor:not-allowed;background:#FAFBFB}
+.unit-card .info{flex:1}
+.unit-card .pj-name{font-weight:600;font-size:15px}
+.unit-card .pj-meta{color:var(--cement);font-size:12px;margin-top:6px}
+
+.notice-banner{background:#FFF8F4;border:1px solid var(--brick);padding:14px 18px;font-size:13px;color:#7A4D00;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px}
+.notice-banner b{display:block;color:var(--brick);margin-bottom:4px}
+
+/* === Step 3 Form === */
+.field-card{border:1px solid var(--line);padding:18px 22px;margin-bottom:12px;background:#fff;transition:all .15s}
+.field-card.checked{border:2px solid #000;padding:17px 21px}
+.field-card-head{display:flex;align-items:center;gap:14px;cursor:pointer;flex-wrap:wrap}
+.field-card-head .field-label-block{flex:1;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.field-card-head .field-name{font-weight:600;font-size:15px}
+.field-card-head .field-en{color:var(--cement);font-size:12px}
+.field-card-head .field-cur{color:var(--cement);font-size:13px}
+.field-card-head .field-cur b{color:#000;font-weight:500}
+.field-body{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.row-3col{display:grid;grid-template-columns:120px 1fr 1fr;gap:14px;margin-bottom:12px}
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+.field-warn{background:#FDE8E4;border-left:3px solid var(--err);padding:10px 14px;font-size:12px;color:#8B0000;margin-top:10px;font-weight:500}
+.field-warn b{color:var(--err)}
+
+/* === Address structured form === */
+.addr-country-row{padding:14px 18px;background:#FFF8F4;border:1px solid var(--line);margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.addr-country-row label{font-size:13px;color:#000;font-weight:400;flex:0 0 140px}
+.addr-country-row select{flex:1;border:0;border-bottom:1px solid var(--brick);background:transparent;padding:6px 4px;font:inherit;font-size:14px;color:var(--brick);font-weight:500;outline:none}
+.addr-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.addr-card{border:1px solid var(--line);padding:18px 22px;background:#fff}
+.addr-card h4{font-size:16px;font-weight:600;margin-bottom:14px}
+.addr-card .form-group{margin-bottom:14px}
+.addr-card .form-label{font-size:11px;color:var(--cement);margin-bottom:2px}
+.addr-card .form-input{font-size:14px;padding:6px 4px}
+.addr-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.addr-2 .form-group{margin-bottom:0}
+@media (max-width: 700px){
+  .addr-cols{grid-template-columns:1fr}
+  .addr-country-row{flex-direction:column;align-items:stretch;gap:6px}
+  .addr-country-row label{flex:auto}
+}
+
+.attach-section{margin-top:32px}
+.attach-section h3{font-size:18px;font-weight:600;margin-bottom:12px}
+.dropzone{border:1px dashed var(--steel);background:#fff;padding:18px 22px;display:flex;align-items:center;gap:18px;cursor:pointer;transition:all .15s}
+.dropzone:hover{border-color:var(--brick)}
+.dropzone .plus{width:42px;height:42px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:300;flex-shrink:0}
+.dropzone .dz-text{flex:1}
+.dropzone .dz-title{font-weight:500;font-size:14px}
+.dropzone .dz-sub{color:var(--cement);font-size:12px;margin-top:2px}
+.dz-files{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.dz-file{display:flex;align-items:center;gap:12px;padding:8px 12px;background:#fff;border:1px solid var(--line);font-size:12px}
+.dz-file .icon{font-size:14px}
+.dz-file .fname{flex:1;font-weight:500}
+.dz-file .fsize{color:var(--cement)}
+.dz-file .ok{color:var(--ok)}
+.dz-file .rm{color:var(--err);cursor:pointer;font-weight:700;padding:0 4px}
+
+/* === Step 4 Review === */
+.doc-frame{background:#fff;padding:8px;border:1px solid var(--line);margin-bottom:24px}
+.doc-toolbar{background:#3F3F3F;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px}
+.doc-toolbar .doc-name{flex:1}
+.doc-toolbar button{background:transparent;border:1px solid #fff;color:#fff;padding:3px 8px;font:inherit;font-size:11px;cursor:pointer}
+.doc-stack{background:#525252;padding:24px;max-height:600px;overflow-y:auto;display:flex;flex-direction:column;gap:24px}
+.doc-page{background:#fff;width:680px;max-width:100%;margin:0 auto;padding:32px 48px;font-size:12px;color:#000;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.doc-pattern{display:flex;height:14px;margin:-32px -48px 24px}
+.doc-pattern span{flex:1}
+.doc-pattern span:nth-child(1){background:#000}
+.doc-pattern span:nth-child(2){background:var(--cement)}
+.doc-pattern span:nth-child(3){background:var(--brick)}
+.doc-pattern span:nth-child(4){background:var(--sand)}
+.doc-pattern span:nth-child(5){background:var(--steel)}
+.doc-page h2{text-align:center;font-size:16px;font-weight:700;margin-bottom:2px}
+.doc-page h3{text-align:center;font-size:13px;font-weight:500;margin-bottom:20px}
+.doc-page .doc-date{text-align:right;font-size:11px;margin-bottom:14px}
+.doc-page .doc-date b{display:inline-block;border-bottom:1px solid #000;padding:0 8px 1px;min-width:120px;font-weight:500}
+.doc-page .doc-row{display:flex;gap:14px;margin-bottom:10px;font-size:11px;align-items:flex-end}
+.doc-page .doc-row .lbl{min-width:120px}
+.doc-page .doc-row .val{flex:1;border-bottom:1px solid #000;padding-bottom:1px}
+.doc-page .doc-row .val.brick{color:var(--brick);font-weight:600}
+.doc-page .doc-intro{margin:18px 0 12px;font-size:11px;font-weight:500}
+.doc-fld{display:flex;gap:10px;margin-bottom:11px;font-size:11px;align-items:flex-start}
+.doc-fld .cb{width:14px;height:14px;border:1.2px solid #000;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px}
+.doc-fld .nm{min-width:120px}
+.doc-fld .nm b{display:block;font-size:11px;font-weight:600}
+.doc-fld .nm small{color:var(--cement);font-size:9px}
+.doc-fld .vs{flex:1}
+.doc-fld .vline{border-bottom:1px solid #000;padding:1px 0;color:var(--brick);font-weight:500;min-height:16px;margin-bottom:2px;font-size:11px}
+.doc-pdpa{border-top:1px solid #000;margin-top:18px;padding-top:8px;font-size:9px;line-height:1.5}
+.doc-pdpa b{display:block;font-size:10px;margin-bottom:3px}
+.doc-sign{margin-top:20px;display:grid;grid-template-columns:1.5fr 1fr;gap:24px}
+.doc-sign-box{}
+.doc-sign-line{border-bottom:1px solid #000;height:42px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px}
+.doc-sign-line img{max-height:36px}
+.doc-sign-lbl{font-size:9px;color:var(--cement);margin-top:3px}
+.doc-sign-name{text-align:center;font-size:10px;margin-top:3px}
+.doc-date-box{text-align:center;font-size:11px;font-weight:600;border-bottom:1px solid #000;padding-bottom:2px;height:42px;display:flex;align-items:flex-end;justify-content:center}
+.doc-footer-pat{display:flex;height:14px;margin:24px -48px -32px}
+.doc-footer-pat span{flex:1}
+.doc-footer-pat span:nth-child(1){background:var(--steel)}
+.doc-footer-pat span:nth-child(2){background:var(--sand)}
+.doc-footer-pat span:nth-child(3){background:var(--brick)}
+.doc-footer-pat span:nth-child(4){background:var(--cement)}
+.doc-footer-pat span:nth-child(5){background:#000}
+
+/* PDF form (matches Personal Information Change Form.pdf layout) */
+.pdf-form{padding:36px 56px}
+.pdf-meta-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;font-size:11px}
+.pdf-meta-row .dot-fill{display:inline-block;border-bottom:1px dotted #000;min-width:140px;padding:0 6px;text-align:center;margin-left:6px}
+.pdf-info-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:6px;font-size:11px}
+.pdf-info-row .pdf-lbl{font-weight:500}
+.pdf-info-row .pdf-lbl small{color:var(--cement);font-size:9px;font-weight:400}
+.dotline{border-bottom:1px dotted #000;flex:1;padding:1px 4px;font-size:11px;min-height:16px}
+.dotline.brick{color:var(--brick);font-weight:500}
+.pdf-fld{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:11px}
+.pdf-fld.multi{align-items:flex-start}
+.pdf-cb{font-size:14px;font-weight:bold;line-height:1;margin-top:2px;flex-shrink:0}
+.pdf-fld-label{min-width:140px;flex-shrink:0}
+.pdf-fld-label b{display:block;font-size:11px;font-weight:600}
+.pdf-fld-label small{color:var(--cement);font-size:9px;font-weight:400}
+.pdf-fld-value{flex:1;display:flex;flex-direction:column;gap:4px}
+.pdf-sub{display:flex;align-items:center;gap:6px;font-size:11px}
+.pdf-sub-cb{font-size:13px;flex-shrink:0}
+.pdf-sub small{color:var(--cement);font-size:9px}
+.pdf-remark{margin-top:14px;padding:8px 0;border-top:1px solid #000;font-size:10px;line-height:1.5}
+.pdf-remark b{font-weight:600}
+.pdf-remark small{color:var(--cement);font-size:9px}
+.pdf-pdpa-section{margin-top:16px;padding-top:12px;border-top:1px dashed var(--steel)}
+
+/* === Signature === */
+.sig-section{margin-top:32px}
+.sig-section h3{font-size:18px;font-weight:600;margin-bottom:12px}
+.sig-canvas-wrap{position:relative;border:1px dashed var(--steel);background:#fff;height:140px}
+canvas#sigCanvas{width:100%;height:140px;display:block;cursor:crosshair;touch-action:none}
+.sig-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--cement);font-size:13px;pointer-events:none}
+.sig-hint.hidden{display:none}
+.sig-buttons{display:flex;gap:12px;margin-top:14px}
+.sig-buttons .btn{height:36px;padding:0 18px;font-size:12px}
+
+.confirm-list{margin-top:32px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.confirm-row{display:flex;align-items:flex-start;gap:10px;font-size:13px;cursor:pointer}
+.confirm-row input{margin-top:2px;width:18px;height:18px;accent-color:#000}
+
+/* === Step 5 Success === */
+.success-title{text-align:center;margin-bottom:8px}
+.success-title h1{font-size:32px;font-weight:700}
+.success-sub{text-align:center;color:var(--cement);font-size:14px;margin-bottom:40px}
+.req-section{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:24px;border-top:1px solid var(--line)}
+.req-section h3{font-size:18px;font-weight:600}
+.dl-all-btn{background:#000;color:#fff;padding:8px 16px;font-size:12px;border:0;cursor:pointer;font-family:inherit;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.req-pills{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px}
+.req-pill{background:#fff;border:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer}
+.req-pill:hover{border-color:#000}
+.req-pill .dl-icon{color:var(--cement)}
+.changes-section{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+.changes-section h3{font-size:18px;font-weight:600;margin-bottom:16px}
+.change-row{display:grid;grid-template-columns:1fr 32px 1fr;align-items:center;gap:8px;margin-bottom:12px}
+.change-box{padding:14px 18px;border:1px solid var(--line);font-size:13px}
+.change-box.new{border-color:#000;border-width:2px}
+.change-box .lbl{color:var(--cement);font-size:11px;margin-bottom:4px}
+.change-box .val{font-weight:500;line-height:1.4}
+.change-arrow{text-align:center;font-weight:700;font-size:18px}
+
+/* === Footer (matches noblehome.com) === */
+.site-footer{background:#000;color:#fff;padding:40px 32px;font-size:11px}
+.site-footer .pre{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.site-footer h4{color:#fff;font-size:13px;font-weight:600;margin-bottom:14px}
+.site-footer ul{list-style:none}
+.site-footer li{margin-bottom:6px}
+.site-footer a{color:#B4BBBF;text-decoration:none}
+.site-footer a:hover{color:#fff}
+.site-footer .copyright{max-width:1200px;margin:32px auto 0;padding-top:24px;border-top:1px solid #333;display:flex;justify-content:space-between;color:#999;font-size:11px;flex-wrap:wrap;gap:8px}
+
+/* === Misc === */
+.toast{position:fixed;bottom:24px;right:24px;background:#000;color:#fff;padding:14px 20px;font-size:13px;font-weight:400;border-left:3px solid var(--brick);box-shadow:0 8px 24px rgba(0,0,0,.3);transform:translateY(120%);transition:transform .3s;z-index:9999;max-width:380px}
+.toast.show{transform:translateY(0)}
+.toast.success{border-left-color:var(--ok)}
+.toast.error{border-left-color:var(--err)}
+.loading{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:99999;color:#fff;flex-direction:column;gap:12px}
+.loading.show{display:flex}
+.loading .spin{width:42px;height:42px;border:3px solid rgba(255,255,255,.2);border-top-color:var(--brick);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.screen{display:none}
+.screen.active{display:block}
+
+/* Demo mode controls (collapsible) */
+.demo-wrap{position:fixed;top:90px;right:0;z-index:200;display:flex;align-items:flex-start;transition:transform .3s ease}
+.demo-wrap.collapsed{transform:translateX(calc(100% - 32px))}
+.demo-toggle{width:32px;height:80px;background:rgba(0,0,0,.85);color:var(--sand);border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;font-family:inherit;font-weight:600;border-radius:6px 0 0 6px;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;flex-shrink:0;padding:8px 0}
+.demo-toggle:hover{background:#000}
+.demo-bar{background:rgba(0,0,0,.92);color:#fff;padding:14px 16px;font-size:11px;display:flex;gap:8px;flex-direction:column;width:280px;border-radius:0 0 0 6px}
+.demo-bar h5{font-size:11px;color:var(--sand);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.demo-bar button{background:#fff;color:#000;border:0;padding:6px 10px;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;text-align:left}
+.demo-bar button:hover{background:var(--sand)}
+.demo-bar code{background:#333;color:var(--sand);padding:1px 6px;font-size:10px;border-radius:2px}
+.demo-bar hr{border:0;border-top:1px solid #333;margin:4px 0}
+
+@media (max-width: 700px){
+  .step-line{flex:0 0 30px}
+  .step .label{font-size:10px;max-width:80px}
+  .unit-grid{grid-template-columns:1fr}
+  .row-3col{grid-template-columns:1fr}
+  .row-2col{grid-template-columns:1fr}
+  .doc-page{padding:18px 20px}
+  .doc-pattern,.doc-footer-pat{margin-left:-20px;margin-right:-20px}
+  .change-row{grid-template-columns:1fr}
+  .change-arrow{transform:rotate(90deg)}
+  .site-footer .pre{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ====================== Header ====================== -->
+<header class="site-header">
+  <div class="logo">
+    <span class="logo-box">noble</span>
+  </div>
+  <div class="header-right">
+    <span class="header-icon">⌂</span>
+    <span class="header-icon">◔</span>
+    <span class="lang-toggle">
+      <button id="langTH" class="active" onclick="setLang('th')">TH</button>
+      <span style="color:var(--steel)">|</span>
+      <button id="langEN" onclick="setLang('en')">EN</button>
+    </span>
+    <span class="header-icon">⌕</span>
+    <span class="header-icon">≡</span>
+  </div>
+</header>
+
+<!-- Demo control panel (collapsible) -->
+<div class="demo-wrap collapsed" id="demoWrap">
+  <button class="demo-toggle" onclick="toggleDemo()" title="Demo Controls">DEMO ◀</button>
+  <div class="demo-bar" id="demoBar">
+    <h5>🎮 Demo Controls</h5>
+    <div>ลูกค้า: <code id="demoCust">Noble ID Secondary</code></div>
+    <button onclick="setDemoMode('A')">Scenario A · Original Buyer (เลือกห้องได้)</button>
+    <button onclick="setDemoMode('B')">Scenario B · Noble ID Secondary (ห้อง lock)</button>
+    <button onclick="setDemoMode('FOREIGN')">Foreign Customer (Passport)</button>
+    <hr>
+    <div style="background:rgba(210,97,50,.2);padding:8px 10px;border-left:3px solid var(--brick);margin:4px 0">
+      <div style="color:var(--sand);font-weight:600;margin-bottom:2px">🔑 OTP สำหรับทดสอบ</div>
+      <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:2px;font-family:monospace">123456</div>
+    </div>
+    <div>ID: <code>1102001943802</code></div>
+    <div>DOB: <code>14/05/1990</code></div>
+  </div>
+</div>
+
+<main class="main">
+  <div class="container">
+
+    <!-- ====================== Stepper ====================== -->
+    <div class="stepper" id="stepper"></div>
+
+    <!-- ====================== Screen 1.1 — Identity ====================== -->
+    <section class="screen" id="screen-1a">
+      <div class="page-title">
+        <h1 data-i18n="verifyTitle">ยืนยันตัวตน</h1>
+        <div class="sub" data-i18n="verifySub">โปรดยืนยันตัวตนเพื่อความปลอดภัยของข้อมูล</div>
+      </div>
+      <div class="form-box">
+        <div class="form-group">
+          <label class="form-label" data-i18n="idLabel">หมายเลขบัตรประชาชน/พาสปอร์ต</label>
+          <input type="text" class="form-input" id="idInput" value="1102001943802" placeholder="กรอกเลขบัตร 13 หลัก หรือ Passport" />
+          <div class="form-error" id="idError" style="display:none"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="dobLabel">วันเกิด</label>
+          <input type="text" class="form-input" id="dobInput" value="14/05/1990" placeholder="DD/MM/YYYY" />
+          <div class="form-error" id="dobError" style="display:none"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="sendOTP()" data-i18n="sendOtp">Send OTP</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== Screen 1.2 — OTP ====================== -->
+    <section class="screen" id="screen-1b">
+      <div class="page-title">
+        <h1 data-i18n="otpTitle">ยืนยันรหัส OTP</h1>
+        <div class="sub">
+          เราได้ส่งรหัส 6 หลักไปยังเบอร์ <b id="otpPhone">081-XXX-5678</b><br>
+          และอีเมล <b id="otpEmail">sawxxxxx@gmaxxxxx.cxxxxx</b><br>
+          กรุณากรอกภายใน 5 นาที
+        </div>
+      </div>
+      <div class="form-box">
+        <div class="form-group">
+          <div style="font-size:12px;color:var(--cement);margin-bottom:6px">OTP จะหมดอายุใน <span id="otpCountdown" style="font-weight:600;color:#000">5 นาที</span></div>
+          <input type="text" class="form-input" id="otpInput" placeholder="โปรดใส่รหัส OTP (Ref no. ezwGJ1)" maxlength="6" inputmode="numeric" />
+          <div style="font-size:11px;color:var(--cement);margin-top:6px">Ref no.: <b id="otpRef">ezwGJ1</b></div>
+          <div class="form-error" id="otpError" style="display:none"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn outline" onclick="goto('1a')" data-i18n="back">ย้อนกลับ</button>
+          <button class="btn primary" id="verifyBtn" onclick="verifyOTP()" data-i18n="verifyOtp">Verify OTP</button>
+        </div>
+        <div class="otp-meta">
+          ส่ง OTP อีกครั้งใน <button class="resend-btn" id="resendBtn" disabled onclick="resendOTP()">60 วินาที</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== Screen 2 — Unit Selection ====================== -->
+    <section class="screen" id="screen-2">
+      <div class="cust-info-bar" id="custInfo"></div>
+      <div class="sel-header">
+        <h2 data-i18n="selectTitle">เลือกห้องที่ต้องการเปลี่ยนข้อมูล</h2>
+        <div class="select-all" onclick="toggleSelectAll()" id="selectAllRow">
+          <div class="checkbox" id="chkAll"></div>
+          <span style="font-size:13px" data-i18n="selectAll">เลือกทั้งหมด</span>
+        </div>
+      </div>
+      <div class="sel-sub" id="selSub">ระบบจะแสดงเฉพาะห้องที่ผูกเลขบัตรของท่านในฐานข้อมูลลูกค้าของ noble หากห้องของท่านยังไม่ปรากฎ กรุณาติดต่อ Support Center : 02-251-9955</div>
+
+      <div id="nobleIdNotice" style="display:none">
+        <div class="notice-banner">
+          <span style="font-size:18px">ⓘ</span>
+          <div id="nobleIdNoticeText">
+            <b>ท่านเป็นเจ้าของห้องผ่าน Noble ID</b>
+            ห้องเหล่านี้ไม่ได้ผูกกับสัญญาซื้อขายโดยตรง · ข้อมูลที่ท่านเปลี่ยนจะมีผลกับห้องทั้งหมด (ไม่สามารถเลือกแยกห้องได้)
+          </div>
+        </div>
+      </div>
+
+      <div class="unit-grid" id="unitGrid"></div>
+
+      <div class="btn-row">
+        <button class="btn primary" id="continueToA3" onclick="continueToForm()" disabled data-i18n="continue">ดำเนินการต่อ</button>
+      </div>
+    </section>
+
+    <!-- ====================== Screen 3 — Change Form ====================== -->
+    <section class="screen" id="screen-3">
+      <div class="page-title">
+        <h1 data-i18n="changeTitle">เปลี่ยนแปลงข้อมูล</h1>
+        <div class="sub" data-i18n="changeSub">กรุณาติ๊กเลือกข้อมูลที่ท่านต้องการเปลี่ยนแปลง</div>
+      </div>
+
+      <div id="fieldList"></div>
+
+      <div class="attach-section">
+        <h3>เอกสารประกอบ <span style="color:var(--err);font-weight:400">*</span></h3>
+        <div style="font-size:12px;color:var(--cement);margin-bottom:8px">จำเป็นต้องแนบ <b style="color:#000">สำเนาบัตรประชาชน</b> หรือ <b style="color:#000">Passport</b> อย่างน้อย 1 ไฟล์</div>
+        <div class="field-warn" style="margin-top:0;margin-bottom:14px">
+          ⚠ <b>กรุณาขีดคร่อมเอกสารทุกฉบับ</b> พร้อมระบุข้อความ <b>"ใช้สำหรับขอเปลี่ยนแปลงข้อมูลส่วนบุคคลกับบริษัท Noble Development เท่านั้น"</b> และลงลายมือชื่อกำกับ เพื่อความปลอดภัยของข้อมูลและป้องกันการนำไปใช้ในวัตถุประสงค์อื่น
+        </div>
+        <div class="dropzone" id="dropZone">
+          <div class="plus">+</div>
+          <div class="dz-text">
+            <div class="dz-title">Choose a file or drag &amp; drop it here</div>
+            <div class="dz-sub">JPEG, PNG, PDF format, up to 10MB</div>
+          </div>
+        </div>
+        <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.pdf" style="display:none" />
+        <div class="dz-files" id="fileList"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn outline" onclick="goto('2')" data-i18n="back">ย้อนกลับ</button>
+        <button class="btn primary" id="btnToReview" onclick="continueToReview()" disabled data-i18n="continue">ดำเนินการต่อ</button>
+        <div class="step3-hint" id="step3Hint">กรุณาเลือกข้อมูลที่ต้องการเปลี่ยนอย่างน้อย 1 รายการ</div>
+      </div>
+    </section>
+
+    <!-- ====================== Screen 4 — Review & Sign ====================== -->
+    <section class="screen" id="screen-4">
+      <div class="page-title">
+        <h1 data-i18n="reviewTitle">ตรวจสอบข้อมูล และเซ็นเอกสาร</h1>
+        <div class="sub" data-i18n="reviewSub">กรุณาตรวจสอบความถูกต้อง กรณีพบข้อมูลที่ไม่ถูกต้อง สามารถกดปุ่มย้อนกลับเพื่อบันทึกให้ข้อมูลถูกต้อง ก่อนส่งคำขอ</div>
+      </div>
+
+      <div class="doc-frame">
+        <div class="doc-toolbar">
+          <span class="doc-name" id="docName">CIM_REQ.pdf</span>
+          <span id="docPageNum">เอกสาร 1 / 1</span>
+          <button onclick="downloadDraftPDF()">⬇ Download</button>
+          <button onclick="window.print()">🖨 Print</button>
+        </div>
+        <div class="doc-stack" id="docStack"></div>
+      </div>
+
+      <div class="sig-section">
+        <h3 data-i18n="yourSignature">ลายเซ็นต์ของท่าน</h3>
+        <div class="sig-canvas-wrap">
+          <canvas id="sigCanvas" width="800" height="140"></canvas>
+          <div class="sig-hint" id="sigHint">
+            ลากนิ้ว/เม้าส์ในกรอบนี้เพื่อเซ็น
+            <div style="font-size:11px;color:var(--steel);margin-top:4px">Draw your signature with finger or mouse</div>
+          </div>
+        </div>
+        <div class="sig-buttons">
+          <button class="btn outline" onclick="clearSignature()">↺ <span data-i18n="clearSig">ล้างลายเซ็น</span></button>
+          <button class="btn primary" onclick="applySignature()" data-i18n="applySig">ใช้ลายเซ็นนี้</button>
+        </div>
+      </div>
+
+      <div class="confirm-list">
+        <label class="confirm-row">
+          <input type="checkbox" id="conf1" onchange="updateSubmitBtn()">
+          <span data-i18n="conf1">ฉันได้ตรวจสอบเอกสารทั้งหมดแล้ว และข้อมูลถูกต้องครบถ้วน</span>
+        </label>
+        <label class="confirm-row">
+          <input type="checkbox" id="conf2" onchange="updateSubmitBtn()">
+          <span><span data-i18n="conf2pre">ฉันยินยอมให้บริษัทใช้ข้อมูลตาม</span> <a href="https://www.noblehome.com/th/policy" target="_blank" rel="noopener noreferrer" style="color:var(--brick);text-decoration:underline;font-weight:500"><span data-i18n="conf2link">PDPA Consent (นโยบายความเป็นส่วนตัวลูกค้า)</span> ↗</a> <span data-i18n="conf2post">ที่ระบุในเอกสาร</span></span>
+        </label>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn outline" onclick="goto('3')" data-i18n="back">ย้อนกลับ</button>
+        <button class="btn primary" id="btnSubmit" onclick="submitRequest()" disabled data-i18n="continue">ดำเนินการต่อ</button>
+      </div>
+    </section>
+
+    <!-- ====================== Screen 5 — Success ====================== -->
+    <section class="screen" id="screen-5">
+      <div class="success-title">
+        <h1 data-i18n="successTitle">ส่งคำขอเรียบร้อย</h1>
+      </div>
+      <div class="success-sub" data-i18n="successSub">เจ้าหน้าที่โครงการจะตรวจสอบ และดำเนินการภายใน 7 วันทำการ</div>
+
+      <div class="req-section">
+        <h3 data-i18n="yourReqs">คำขอของท่าน</h3>
+        <button class="dl-all-btn" onclick="downloadAll()">⬇ <span data-i18n="downloadAll">Download All</span></button>
+      </div>
+      <div class="req-pills" id="reqPills"></div>
+
+      <div style="background:var(--bg);padding:16px 20px;margin-top:16px;font-size:13px;color:var(--cement);text-align:center">
+        ดาวน์โหลด PDF เพื่อดูรายละเอียดทั้งหมด · ระบบรวมเอกสารคำขอที่เซ็นแล้ว + ไฟล์ที่ท่านแนบมา ในไฟล์เดียว
+      </div>
+
+      <div class="btn-row">
+        <button class="btn outline" onclick="goHome()" data-i18n="goHome">กลับหน้าแรก</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ====================== Footer (matches noblehome.com) ====================== -->
+<footer class="site-footer">
+  <div class="pre">
+    <div>
+      <h4>โครงการคอนโดมิเนียม</h4>
+      <ul>
+        <li><a href="#">คอนโดใหม่</a></li>
+        <li><a href="#">คอนโดพร้อมอยู่</a></li>
+        <li><a href="#">คอนโดน่าลงทุน</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>โครงการบ้าน</h4>
+      <ul>
+        <li><a href="#">บ้านเดี่ยว บ้านแฝด</a></li>
+        <li><a href="#">บ้านใกล้ทางด่วน</a></li>
+        <li><a href="#">บ้านใกล้ห้าง</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>CORPORATE</h4>
+      <ul>
+        <li><a href="#">กิจกรรมเพื่อสังคม</a></li>
+        <li><a href="#">โนเบิลไอดี</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>ติดต่อโนเบิล</h4>
+      <ul>
+        <li><a href="#">การเสนอขายที่ดิน</a></li>
+        <li><a href="#">สมัครงาน</a></li>
+        <li><a href="#">ติดต่อโนเบิล</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="copyright">
+    <span>© 2026 Noble Development.</span>
+    <span>เงื่อนไขและข้อกำหนด · นโยบายความเป็นส่วนตัว · COOKIES</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<div class="loading" id="loading"><div class="spin"></div><div id="loadingText">Loading...</div></div>
+
+<script>
+// ============================================================
+// MOCK DATABASE
+// ============================================================
+const MOCK_DB = {
+  // Scenario A: Original Buyer (มีสัญญากับ Noble) - คุณปลา
+  A: {
+    customer: {
+      id: 'NBL-800284201',
+      idCard: '1102001943802',
+      dob: '14/05/1990',
+      nameTH: 'น.ส. สาวิตรี อ่อนเลิศ',
+      nameEN: 'Ms. Sawitree Ornlart',
+      phone: '0812345678',
+      email: 'sawitree.o@example.com',
+      type: 'thai',
+      nobleIdMember: true,
+      currentValues: {
+        name: { titleTH:'นางสาว', firstTH:'สาวxxxxx', lastTH:'อ่อxxxxx', titleEN:'Mrs.', firstEN:'Sorxxxxx', lastEN:'Onlxxxxx' },
+        idCard: '3-12XX-XXXXX-40-8',
+        email: 'sawxxxxx@gmaxxxxx.cxxxxx',
+        phone: '081-XXX-5678',
+        addrIdTH: '999/88 ถนนสุขุมxxxxx แขวงคลองxxxxx เขตวัฒxxxxx กรุงxxxxx 10xx0',
+        addrIdEN: '999/88 Sukhumxxxxx Rd., Khlong xxxxx, Wat xxxxx, Bangkok 10xx0',
+        addrMailTH: '999/88 ถนนสุขุมxxxxx แขวงคลองxxxxx เขตวัฒxxxxx กรุงxxxxx 10xx0',
+        addrMailEN: '999/88 Sukhumxxxxx Rd., Khlong xxxxx, Wat xxxxx, Bangkok 10xx0',
+        receipt: 'Paper (กระดาษ)',
+        passport: '— ไม่มีข้อมูล —'
+      }
+    },
+    units: [
+      { id:'U-001', name:'Noble Around Ari', code:'222/101 (A10B02)', transferDate:'14 ส.ค. 2568', selectable:true, contractStatus:'completed', currentReceipt:'paper' },
+      { id:'U-002', name:'Noble BE33', code:'55/300 (B21C12)', transferDate:'14 ส.ค. 2568', selectable:true, contractStatus:'active', currentReceipt:'paper' },
+      { id:'U-003', name:'Nue Epic Asok Rama 9', code:'A18A09', transferDate:'-', selectable:true, contractStatus:'active', currentReceipt:'eReceipt' }
+    ]
+  },
+  // Scenario B: Noble ID Secondary Owner (ซื้อต่อจากเจ้าของเดิม)
+  B: {
+    customer: {
+      id: 'NBL-900445671',
+      idCard: '1102001943802',
+      dob: '14/05/1990',
+      nameTH: 'น.ส. สาวิตรี อ่อนเลิศ',
+      nameEN: 'Ms. Sawitree Ornlart',
+      phone: '0812345678',
+      email: 'sawitree.o@example.com',
+      type: 'thai',
+      nobleIdMember: true,
+      currentValues: {
+        name: { titleTH:'นางสาว', firstTH:'สาวxxxxx', lastTH:'อ่อxxxxx', titleEN:'Mrs.', firstEN:'Sorxxxxx', lastEN:'Onlxxxxx' },
+        idCard: '3-12XX-XXXXX-40-8',
+        email: 'sawxxxxx@gmaxxxxx.cxxxxx',
+        phone: '081-XXX-5678',
+        addrIdTH: '999/88 ถนนสุขุมxxxxx แขวงคลองxxxxx เขตวัฒxxxxx กรุงxxxxx 10xx0',
+        addrIdEN: '999/88 Sukhumxxxxx Rd., Khlong xxxxx, Wat xxxxx, Bangkok 10xx0',
+        addrMailTH: '999/88 ถนนสุขุมxxxxx แขวงคลองxxxxx เขตวัฒxxxxx กรุงxxxxx 10xx0',
+        addrMailEN: '999/88 Sukhumxxxxx Rd., Khlong xxxxx, Wat xxxxx, Bangkok 10xx0',
+        receipt: 'E-Receipt (อิเล็กทรอนิกส์)',
+        passport: '— ไม่มีข้อมูล —'
+      }
+    },
+    units: [
+      { id:'U-101', name:'Noble Around Ari', code:'222/101 (A10B02)', transferDate:'14 ส.ค. 2568', selectable:false, contractStatus:'completed', currentReceipt:'paper' },
+      { id:'U-102', name:'Noble BE33', code:'55/300 (B21C12)', transferDate:'14 ส.ค. 2568', selectable:false, contractStatus:'completed', currentReceipt:'paper' }
+    ]
+  },
+  // Foreign customer (Passport)
+  FOREIGN: {
+    customer: {
+      id: 'NBL-700994412',
+      idCard: 'AA1234567',
+      dob: '14/05/1990',
+      nameTH: '— ไม่มีข้อมูล —',
+      nameEN: 'Mr. John Smith',
+      phone: '0951234567',
+      email: 'john@example.com',
+      type: 'foreign',
+      nobleIdMember: false,
+      currentValues: {
+        name: { titleTH:'', firstTH:'', lastTH:'', titleEN:'Mr.', firstEN:'Joxx', lastEN:'Smxxx' },
+        idCard: '— ไม่มีข้อมูล —',
+        email: 'joxx@exaxxx.com',
+        phone: '095-XXX-4567',
+        addrIdTH: '— ไม่มีข้อมูล —',
+        addrIdEN: '— No data —',
+        addrMailTH: '88/12 ซอยสุขxxxxx แขวงพระโขxxxxx กรุงเทพ 102x0',
+        addrMailEN: '88/12 Sukhxxxxx Soi, Phra Khaxxxxx, Bangkok 102x0',
+        receipt: 'E-Receipt (Electronic)',
+        passport: 'AAxxxxx67'
+      }
+    },
+    units: [
+      { id:'U-201', name:'Nue Epic Asok Rama 9', code:'A18A09', transferDate:'-', selectable:true, contractStatus:'active', currentReceipt:'paper' }
+    ]
+  }
+};
+
+// ============================================================
+// State
+// ============================================================
+const state = {
+  screen: '1a',
+  mode: 'A',                  // A | B | FOREIGN
+  lang: 'th',                 // 'th' | 'en'
+  customer: null,
+  units: [],
+  selectedUnitIds: [],
+  otp: { expected:null, ref:null, expiresAt:null, attempts:0, locked:false },
+  changes: {},
+  attachments: [],
+  signature: null,
+  reqIds: []
+};
+
+// ============================================================
+// i18n — Internationalization Strings
+// ============================================================
+const I18N = {
+  // Step labels
+  step1: { th:'ยืนยันตัวตน', en:'Verify Identity' },
+  step2: { th:'ห้องที่ต้องการเปลี่ยนข้อมูล', en:'Select Unit' },
+  step3: { th:'เปลี่ยนแปลงข้อมูล', en:'Change Information' },
+  step4: { th:'ตรวจสอบและเซ็นเอกสาร', en:'Review & Sign' },
+  step5: { th:'สำเร็จ', en:'Success' },
+  // Page 1.1
+  verifyTitle: { th:'ยืนยันตัวตน', en:'Verify Identity' },
+  verifySub: { th:'โปรดยืนยันตัวตนเพื่อความปลอดภัยของข้อมูล', en:'Please verify your identity for data security' },
+  idLabel: { th:'หมายเลขบัตรประชาชน/พาสปอร์ต', en:'ID Card / Passport Number' },
+  dobLabel: { th:'วันเกิด', en:'Date of Birth' },
+  sendOtp: { th:'Send OTP', en:'Send OTP' },
+  // Page 1.2
+  otpTitle: { th:'ยืนยันรหัส OTP', en:'Verify OTP' },
+  otpRef: { th:'Ref no.', en:'Ref no.' },
+  verifyOtp: { th:'Verify OTP', en:'Verify OTP' },
+  back: { th:'ย้อนกลับ', en:'Back' },
+  resendIn: { th:'ส่ง OTP อีกครั้งใน', en:'Resend OTP in' },
+  resendNow: { th:'ส่ง OTP อีกครั้ง', en:'Resend OTP' },
+  // Page 2
+  selectTitle: { th:'เลือกห้องที่ต้องการเปลี่ยนข้อมูล', en:'Select unit(s) to change information' },
+  selectAll: { th:'เลือกทั้งหมด', en:'Select All' },
+  continue: { th:'ดำเนินการต่อ', en:'Continue' },
+  // Page 3
+  changeTitle: { th:'เปลี่ยนแปลงข้อมูล', en:'Change Information' },
+  changeSub: { th:'กรุณาติ๊กเลือกข้อมูลที่ท่านต้องการเปลี่ยนแปลง', en:'Please tick the information you want to change' },
+  attachments: { th:'เอกสารประกอบ', en:'Supporting Documents' },
+  // Page 4
+  reviewTitle: { th:'ตรวจสอบข้อมูล และเซ็นเอกสาร', en:'Review & Sign Document' },
+  reviewSub: { th:'กรุณาตรวจสอบความถูกต้อง กรณีพบข้อมูลที่ไม่ถูกต้อง สามารถกดปุ่มย้อนกลับเพื่อบันทึกให้ข้อมูลถูกต้อง ก่อนส่งคำขอ', en:'Please review carefully. If you find any incorrect information, you can press Back to correct it before submitting.' },
+  yourSignature: { th:'ลายเซ็นต์ของท่าน', en:'Your Signature' },
+  clearSig: { th:'ล้างลายเซ็น', en:'Clear Signature' },
+  applySig: { th:'ใช้ลายเซ็นนี้', en:'Apply Signature' },
+  conf1: { th:'ฉันได้ตรวจสอบเอกสารทั้งหมดแล้ว และข้อมูลถูกต้องครบถ้วน', en:'I have reviewed all documents and confirm the information is correct.' },
+  conf2pre: { th:'ฉันยินยอมให้บริษัทใช้ข้อมูลตาม', en:'I consent to the company using my data per' },
+  conf2link: { th:'PDPA Consent (นโยบายความเป็นส่วนตัวลูกค้า)', en:'PDPA Consent (Customer Privacy Policy)' },
+  conf2post: { th:'ที่ระบุในเอกสาร', en:'as stated in the document' },
+  // Page 5
+  successTitle: { th:'ส่งคำขอเรียบร้อย', en:'Request Submitted Successfully' },
+  successSub: { th:'เจ้าหน้าที่โครงการจะตรวจสอบ และดำเนินการภายใน 7 วันทำการ', en:'Project staff will review and process within 7 business days' },
+  yourReqs: { th:'คำขอของท่าน', en:'Your Requests' },
+  downloadAll: { th:'Download All', en:'Download All' },
+  goHome: { th:'กลับหน้าแรก', en:'Back to Home' },
+  // Form common
+  currentData: { th:'ข้อมูลปัจจุบัน :', en:'Current Data :' },
+  required: { th:'จำเป็น', en:'Required' },
+  pleaseSelect: { th:'กรุณาเลือก', en:'Please Select' },
+  optional: { th:'(ถ้ามี)', en:'(optional)' },
+  // Field names (used when in EN mode, swap th/en)
+  fieldName_name: { th:'ชื่อ – นามสกุล', en:'Name – Surname' },
+  fieldName_passport: { th:'เลขที่ Passport', en:'Passport Number' },
+  fieldName_idCard: { th:'เลขบัตรประชาชน', en:'ID Card Number' },
+  fieldName_email: { th:'อีเมล', en:'Email' },
+  fieldName_phone: { th:'เบอร์โทรศัพท์', en:'Phone Number' },
+  fieldName_addrId: { th:'ที่อยู่ตามบัตรประชาชน', en:'ID Card Address' },
+  fieldName_addrMail: { th:'ที่อยู่จัดส่งเอกสาร', en:'Mailing Address' },
+  fieldName_receipt: { th:'รูปแบบใบเสร็จรับเงิน', en:'Receipt Type' },
+  // Address sub-labels
+  addrCountry: { th:'ประเทศ/Country', en:'Country/ประเทศ' },
+  addrNo: { th:'เลขที่/Address No', en:'Address No/เลขที่' },
+  addrBuilding: { th:'อาคาร/หมู่บ้าน/Building', en:'Building/อาคาร/หมู่บ้าน' },
+  addrMoo: { th:'หมู่ที่/Moo', en:'Moo/หมู่ที่' },
+  addrSoi: { th:'ซอย/Soi', en:'Soi/ซอย' },
+  addrRoad: { th:'ถนน/Road', en:'Road/ถนน' },
+  addrProvince: { th:'จังหวัด/Province', en:'Province/จังหวัด' },
+  addrDistrict: { th:'อำเภอ/เขต/District', en:'District/อำเภอ/เขต' },
+  addrSubDistrict: { th:'ตำบล/แขวง/Sub-District', en:'Sub-District/ตำบล/แขวง' },
+  addrPostal: { th:'รหัสไปรษณีย์/Postal Code', en:'Postal Code/รหัสไปรษณีย์' },
+  thaiCard: { th:'Thai', en:'Thai (ภาษาไทย)' },
+  englishCard: { th:'English', en:'English (ภาษาอังกฤษ)' },
+  // Name field
+  titleLabel: { th:'คำนำหน้า · Title', en:'Title · คำนำหน้า' },
+  firstNameTH: { th:'ชื่อ (TH)', en:'First name (TH)' },
+  lastNameTH: { th:'นามสกุล (TH)', en:'Last name (TH)' },
+  firstNameEN: { th:'First name (EN)', en:'First name (EN)' },
+  lastNameEN: { th:'Last name (EN)', en:'Last name (EN)' },
+  nameReason: { th:'เหตุผลในการเปลี่ยน *', en:'Reason for change *' },
+  nameReasonChange: { th:'เปลี่ยนชื่อ-สกุล (ตามทะเบียนราษฎร)', en:'Change name (per civil registration)' },
+  nameReasonTypo: { th:'แก้คำสะกดผิด (ข้อมูลเดิมพิมพ์ผิด)', en:'Correct spelling (typo in original data)' },
+  nameWarn1: { th:'⚠ ต้องแนบเอกสารยืนยันการเปลี่ยนชื่อ-สกุล', en:'⚠ Required: Document confirming name change' },
+  nameWarn2TH: { th:'สำหรับลูกค้าไทย: สำเนาใบเปลี่ยนชื่อ-สกุล หรือ ปถ.14', en:'For Thai customers: Copy of name change certificate or ปถ.14' },
+  nameWarn3: { th:'สำหรับลูกค้าต่างชาติ: เอกสารทางการที่ออกโดยหน่วยงานราชการประเทศของท่าน (Marriage Cert / Deed Poll / etc.)', en:'For foreign customers: Official document from your country\'s government (Marriage Cert / Deed Poll / etc.)' },
+  nameTypoOk: { th:'✓ กรณีแก้คำสะกดผิด ไม่ต้องแนบเอกสารเปลี่ยนชื่อเพิ่มเติม (ใช้สำเนาบัตรประชาชนยืนยัน)', en:'✓ For typo correction, no additional name change document required (use ID card copy as proof)' },
+  // Passport
+  passportNumNew: { th:'เลข Passport ใหม่ / Passport No. *', en:'New Passport No. / เลข Passport ใหม่ *' },
+  passportCountry: { th:'ประเทศที่ออก Passport / Country of Issue *', en:'Country of Issue / ประเทศที่ออก Passport *' },
+  passportSelectCountry: { th:'— เลือกประเทศ —', en:'— Select Country —' },
+  passportWarn: { th:'⚠ ต้องแนบสำเนา Passport ทุกหน้าที่มีข้อมูล (หน้าข้อมูลส่วนตัว + หน้าวีซ่า ถ้ามี)', en:'⚠ Must attach copy of all Passport pages with data (personal info page + visa pages if any)' },
+  // ID Card
+  idCardNew: { th:'เลขบัตรประชาชนใหม่', en:'New ID Card Number' },
+  idDigits: { th:'หลัก', en:'digits' },
+  idCardWarn: { th:'⚠ ต้องแนบสำเนาบัตรประชาชนใหม่', en:'⚠ Must attach copy of new ID Card' },
+  // Email
+  emailNew: { th:'Email ใหม่ *', en:'New Email *' },
+  emailConfirm: { th:'ยืนยัน Email *', en:'Confirm Email *' },
+  emailNobleIdTitle: { th:'★ ลูกค้า Noble ID — โปรดอ่านก่อนเปลี่ยนอีเมล', en:'★ Noble ID Member — Please read before changing email' },
+  emailNobleIdIntro: { th:'ท่านเป็นสมาชิก Noble ID และใช้อีเมลปัจจุบันสำหรับเข้าสู่ระบบ การเปลี่ยนอีเมลในที่นี้จะส่งผลดังนี้:', en:'You are a Noble ID member using your current email to login. Changing email here will result in:' },
+  emailNobleId1: { th:'หลังอนุมัติคำขอ ระบบจะส่ง อีเมล Activation ไปยังอีเมลใหม่', en:'After approval, an Activation Email will be sent to the new email' },
+  emailNobleId2: { th:'ท่านต้อง คลิกลิงก์ Activate ในอีเมล เพื่อยืนยันความเป็นเจ้าของ', en:'You must click the Activate link in the email to confirm ownership' },
+  emailNobleId3: { th:'หลัง Activate สำเร็จ จึงจะใช้อีเมลใหม่ Login เข้า Noble ID ได้', en:'After successful activation, you can login to Noble ID with the new email' },
+  emailNobleId4: { th:'หากไม่ Activate ภายใน 24 ชั่วโมง ระบบจะไม่อัปเดตอีเมลใน Noble ID และต้องแจ้งคำขอใหม่', en:'If not activated within 24 hours, Noble ID email will not be updated and a new request must be made' },
+  emailNotMember: { th:'ⓘ ท่านยังไม่ได้สมัครเป็นสมาชิก Noble ID · การเปลี่ยนอีเมลจะมีผลเฉพาะการรับเอกสาร/แจ้งเตือนจาก Noble เท่านั้น', en:'ⓘ You are not a Noble ID member · Email change only affects receiving documents/notifications from Noble' },
+  // Phone
+  phoneChangeType: { th:'ประเภทการเปลี่ยน *', en:'Change Type *' },
+  phoneChange: { th:'เปลี่ยนหมายเลข / Change', en:'Change Number / เปลี่ยน' },
+  phoneAdd: { th:'เพิ่มหมายเลข / Add', en:'Add Number / เพิ่ม' },
+  phoneNew: { th:'เบอร์โทรศัพท์ใหม่', en:'New Phone Number' },
+  // Receipt
+  receiptEligibleNote: { th:'ⓘ ห้องที่สามารถเปลี่ยนได้:', en:'ⓘ Eligible units:' },
+  receiptEligibleSub: { th:'(เฉพาะห้องที่ยังไม่จบสัญญา และปัจจุบันใช้ใบเสร็จกระดาษ)', en:'(Only units with active contract using paper receipts)' },
+  receiptChangeTo: { th:'เปลี่ยนเป็น', en:'Change to' },
+  receiptOnly: { th:'ⓘ ระบบรองรับเฉพาะการเปลี่ยนจาก Paper → E-Receipt เท่านั้น · ไม่สามารถเปลี่ยน E-Receipt กลับเป็น Paper ได้', en:'ⓘ System only supports changing from Paper → E-Receipt · Cannot change E-Receipt back to Paper' },
+  // Foreign customer hints
+  foreignCountryHint: { th:'ⓘ กรณีต่างประเทศ: ฟิลด์จังหวัด/อำเภอ/ตำบล/รหัสไปรษณีย์ จะเปลี่ยนเป็นช่องกรอกอิสระ · กรอกข้อมูลตามรูปแบบของประเทศนั้นๆ · หากไม่มีข้อมูลในฟิลด์ใด กรุณาใส่ "-"', en:'ⓘ For foreign address: Province/District/Sub-district/Postal Code become free text inputs · Fill in per the country\'s format · Use "-" if a field is not applicable' },
+  foreignAddrHint: { th:'💡 สำหรับลูกค้าต่างชาติ: สามารถกรอกข้อมูลที่อยู่เป็นภาษาอังกฤษในทั้ง 2 ฝั่งได้ · หากฟิลด์ใดไม่มี (เช่น Moo, Soi, ตำบล) กรุณาใส่ "-"', en:'💡 For foreign customers: You can enter your address in English in both columns · Use "-" for fields that don\'t apply (e.g., Moo, Soi, Sub-district)' },
+  // Attachments
+  attachTitle: { th:'เอกสารประกอบ', en:'Supporting Documents' },
+  attachRequired: { th:'จำเป็นต้องแนบ', en:'Must attach' },
+  attachOrPassport: { th:'หรือ', en:'or' },
+  attachAtLeast: { th:'อย่างน้อย 1 ไฟล์', en:'at least 1 file' },
+  attachWarn: { th:'⚠ กรุณาขีดคร่อมเอกสารทุกฉบับ พร้อมระบุข้อความ "ใช้สำหรับขอเปลี่ยนแปลงข้อมูลส่วนบุคคลกับบริษัท Noble Development เท่านั้น" และลงลายมือชื่อกำกับ เพื่อความปลอดภัยของข้อมูลและป้องกันการนำไปใช้ในวัตถุประสงค์อื่น', en:'⚠ Please cross-mark all documents with the text "For use with Noble Development PCL personal information change only" and sign for security and to prevent unauthorized use' },
+  dropzoneTitle: { th:'เลือกไฟล์ หรือ ลากไฟล์มาวางที่นี่', en:'Choose a file or drag & drop it here' },
+  dropzoneSub: { th:'รองรับไฟล์ JPEG, PNG, PDF · ขนาดไม่เกิน 10MB', en:'JPEG, PNG, PDF format, up to 10MB' },
+  // Validation hints
+  hintSelectAtLeast1: { th:'กรุณาเลือกข้อมูลที่ต้องการเปลี่ยนอย่างน้อย 1 รายการ', en:'Please select at least 1 item to change' },
+  hintFillIncomplete: { th:'⚠ กรุณากรอกข้อมูลให้ครบในฟิลด์:', en:'⚠ Please complete the following fields:' },
+  hintReady: { th:'✓ ข้อมูลครบแล้ว · พร้อมดำเนินการต่อ', en:'✓ All data complete · Ready to continue' },
+  // Customer info
+  custIdLabel: { th:'เลขบัตร', en:'ID' },
+  custPhoneLabel: { th:'เบอร์', en:'Phone' },
+  // Mailing address: when foreign customer or non-Thailand
+  needAttachAddr: { th:'⚠ ต้องแนบสำเนาทะเบียนบ้าน หรือเอกสารยืนยันที่อยู่ใหม่', en:'⚠ Must attach house registration or new address proof' },
+  selSub: {
+    th:'ระบบจะแสดงเฉพาะห้องที่ผูกเลขบัตรของท่านในฐานข้อมูลลูกค้าของ noble หากห้องของท่านยังไม่ปรากฎ กรุณาติดต่อ Support Center : 02-251-9955',
+    en:'System shows only units linked to your ID in Noble customer database. If your unit is not shown, please contact Support Center : 02-251-9955'
+  },
+  nobleIdNoticeTitle: { th:'ท่านเป็นเจ้าของห้องผ่าน Noble ID', en:'You own these units via Noble ID' },
+  nobleIdNoticeBody: { th:'ห้องเหล่านี้ไม่ได้ผูกกับสัญญาซื้อขายโดยตรง · ข้อมูลที่ท่านเปลี่ยนจะมีผลกับห้องทั้งหมด (ไม่สามารถเลือกแยกห้องได้)', en:'These units are not linked to a direct purchase contract · Your changes will apply to all units (cannot select individual units)' },
+};
+
+function t(key) {
+  return I18N[key]?.[state.lang] || I18N[key]?.th || key;
+}
+
+// Translate inline (pass th & en directly)
+function tr(thStr, enStr) {
+  return state.lang === 'en' ? enStr : thStr;
+}
+
+// Get field name in primary language (current lang shown bigger)
+function fieldName(f) {
+  return state.lang === 'en' ? f.en : f.th;
+}
+function fieldNameSecondary(f) {
+  return state.lang === 'en' ? f.th : f.en;
+}
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+}
+
+function setLang(lang) {
+  state.lang = lang;
+  document.getElementById('langTH').classList.toggle('active', lang==='th');
+  document.getElementById('langEN').classList.toggle('active', lang==='en');
+  applyTranslations();
+  renderStepper();
+  // Re-render current screen if needed
+  if (state.screen === '2' && state.customer) loadStep2();
+  if (state.screen === '3' && state.customer) {
+    renderFields();
+    // Also update attachment section
+    updateAttachmentI18n();
+  }
+  if (state.screen === '4' && state.customer) loadStep4();
+  if (state.screen === '5' && state.customer) loadStep5();
+}
+
+// Update attachment section text based on current lang
+function updateAttachmentI18n() {
+  const sec = document.querySelector('.attach-section');
+  if (!sec) return;
+  const h3 = sec.querySelector('h3');
+  if (h3) h3.firstChild.textContent = t('attachTitle') + ' ';
+  const subtitle = sec.querySelector('h3 + div');
+  if (subtitle) subtitle.innerHTML = `${t('attachRequired')} <b style="color:#000">${state.lang==='en'?'ID Card copy':'สำเนาบัตรประชาชน'}</b> ${t('attachOrPassport')} <b style="color:#000">Passport</b> ${t('attachAtLeast')}`;
+  const warn = sec.querySelector('.field-warn');
+  if (warn) warn.innerHTML = t('attachWarn');
+  const dzTitle = sec.querySelector('.dz-title');
+  if (dzTitle) dzTitle.textContent = t('dropzoneTitle');
+  const dzSub = sec.querySelector('.dz-sub');
+  if (dzSub) dzSub.textContent = t('dropzoneSub');
+}
+
+// ============================================================
+// Stepper
+// ============================================================
+const STEPS = [
+  { id:'1', i18n:'step1' },
+  { id:'2', i18n:'step2' },
+  { id:'3', i18n:'step3' },
+  { id:'4', i18n:'step4' },
+  { id:'5', i18n:'step5' }
+];
+
+function renderStepper() {
+  const cur = state.screen.charAt(0);
+  const html = [];
+  STEPS.forEach((s, i) => {
+    const isActive = s.id === cur;
+    const isDone = parseInt(s.id) < parseInt(cur);
+    const cls = isDone ? 'done' : (isActive ? 'active' : '');
+    html.push(`<div class="step ${cls}"><div class="circle">${s.id}</div><div class="label">${t(s.i18n)}</div></div>`);
+    if (i < STEPS.length - 1) {
+      html.push(`<div class="step-line ${parseInt(s.id) < parseInt(cur) ? 'done' : ''}"></div>`);
+    }
+  });
+  document.getElementById('stepper').innerHTML = html.join('');
+}
+
+function goto(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-' + screenId);
+  if (target) target.classList.add('active');
+  state.screen = screenId;
+  renderStepper();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// UI helpers
+// ============================================================
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || 'Loading...';
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+
+function toggleDemo() {
+  const w = document.getElementById('demoWrap');
+  const collapsed = w.classList.toggle('collapsed');
+  w.querySelector('.demo-toggle').textContent = collapsed ? 'DEMO ◀' : 'DEMO ▶';
+}
+
+function setDemoMode(mode) {
+  state.mode = mode;
+  document.getElementById('demoCust').textContent = ({
+    A: 'Original Buyer (Thai)',
+    B: 'Noble ID Secondary',
+    FOREIGN: 'Foreign Customer'
+  })[mode];
+  // Reset state
+  state.customer = null;
+  state.units = [];
+  state.selectedUnitIds = [];
+  state.changes = {};
+  state.attachments = [];
+  state.signature = null;
+  state.reqIds = [];
+  document.getElementById('idInput').value = MOCK_DB[mode].customer.idCard;
+  document.getElementById('dobInput').value = MOCK_DB[mode].customer.dob;
+  goto('1a');
+  toast(`Demo mode: ${mode}`, 'success');
+}
+
+// ============================================================
+// Screen 1.1 — Identity
+// ============================================================
+function sendOTP() {
+  const id = document.getElementById('idInput').value.trim();
+  const dob = document.getElementById('dobInput').value.trim();
+  const idErr = document.getElementById('idError');
+  const dobErr = document.getElementById('dobError');
+  idErr.style.display = 'none'; dobErr.style.display = 'none';
+  document.getElementById('idInput').classList.remove('error');
+  document.getElementById('dobInput').classList.remove('error');
+
+  if (!id || (id.replace(/[^0-9]/g,'').length !== 13 && !/^[A-Z]{1,2}[0-9]+$/i.test(id))) {
+    idErr.textContent = 'กรุณากรอกเลขบัตร 13 หลัก หรือ Passport ให้ถูกต้อง';
+    idErr.style.display = 'block';
+    document.getElementById('idInput').classList.add('error');
+    return;
+  }
+  if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dob)) {
+    dobErr.textContent = 'กรุณากรอกวันเกิดในรูปแบบ DD/MM/YYYY';
+    dobErr.style.display = 'block';
+    document.getElementById('dobInput').classList.add('error');
+    return;
+  }
+
+  const data = MOCK_DB[state.mode];
+  if (data.customer.idCard.replace(/[^0-9A-Z]/gi,'') !== id.replace(/[^0-9A-Z]/gi,'') || data.customer.dob !== dob) {
+    idErr.textContent = '⚠ ไม่พบข้อมูลของท่านในระบบ · กรุณาตรวจสอบ หรือติดต่อ Contact Center';
+    idErr.style.display = 'block';
+    return;
+  }
+
+  showLoading('กำลังส่ง OTP...');
+  setTimeout(() => {
+    state.customer = data.customer;
+    state.units = data.units;
+    // ✅ FIXED OTP for demo — ใช้ "123456" และ ref "DEMO01" เสมอ (เพื่อให้ทดสอบง่าย)
+    state.otp.expected = '123456';
+    state.otp.ref = 'DEMO01';
+    state.otp.expiresAt = Date.now() + 5*60*1000;
+    state.otp.attempts = 0;
+    state.otp.locked = false;
+
+    console.log(`%c🔑 [DEMO] OTP = ${state.otp.expected}  ·  Ref = ${state.otp.ref}`,
+      'color:#D26132;font-weight:bold;font-size:14px');
+
+    document.getElementById('otpPhone').textContent = `${data.customer.phone.slice(0,3)}-XXX-${data.customer.phone.slice(-4)}`;
+    document.getElementById('otpEmail').textContent = maskEmail(data.customer.email);
+    document.getElementById('otpRef').textContent = state.otp.ref;
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpError').style.display = 'none';
+
+    hideLoading();
+    toast(`📱 ส่ง OTP สำเร็จ · ใช้รหัส 123456 (ดู Demo Controls ด้านขวา)`, 'success');
+    goto('1b');
+    startCountdown();
+    startResendTimer();
+  }, 700);
+}
+
+function maskEmail(email) {
+  const [u, d] = email.split('@');
+  const dotParts = d.split('.');
+  return `${u.slice(0,3)}xxxxx@${dotParts[0].slice(0,3)}xxxxx.${dotParts.slice(1).join('.').slice(0,1)}xxxxx`;
+}
+
+// ============================================================
+// Screen 1.2 — OTP
+// ============================================================
+let countdownTimer = null;
+let resendTimer = null;
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+  const tick = () => {
+    const remain = Math.max(0, state.otp.expiresAt - Date.now());
+    const m = Math.floor(remain/60000);
+    const s = Math.floor((remain%60000)/1000);
+    document.getElementById('otpCountdown').textContent = `${m}:${String(s).padStart(2,'0')} นาที`;
+    if (remain <= 0) {
+      clearInterval(countdownTimer);
+      state.otp.expected = null;
+    }
+  };
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+
+function startResendTimer() {
+  clearInterval(resendTimer);
+  let left = 60;
+  const btn = document.getElementById('resendBtn');
+  btn.disabled = true;
+  btn.textContent = `${left} วินาที`;
+  resendTimer = setInterval(() => {
+    left--;
+    if (left <= 0) {
+      clearInterval(resendTimer);
+      btn.disabled = false;
+      btn.textContent = 'ส่ง OTP อีกครั้ง';
+    } else {
+      btn.textContent = `${left} วินาที`;
+    }
+  }, 1000);
+}
+
+function resendOTP() {
+  // ✅ FIXED OTP สำหรับ demo — ยังคงใช้ 123456
+  state.otp.expected = '123456';
+  state.otp.ref = 'DEMO01';
+  state.otp.expiresAt = Date.now() + 5*60*1000;
+  state.otp.attempts = 0;
+  console.log(`%c🔑 [DEMO] NEW OTP = ${state.otp.expected}  ·  Ref = ${state.otp.ref}`,
+    'color:#D26132;font-weight:bold;font-size:14px');
+  document.getElementById('otpRef').textContent = state.otp.ref;
+  document.getElementById('otpInput').value = '';
+  document.getElementById('otpError').style.display = 'none';
+  toast('📱 ส่ง OTP ใหม่แล้ว · ใช้รหัส 123456', 'success');
+  startCountdown();
+  startResendTimer();
+}
+
+function verifyOTP() {
+  const code = document.getElementById('otpInput').value.trim();
+  const err = document.getElementById('otpError');
+  err.style.display = 'none';
+  if (state.otp.locked) { err.textContent='ระบบถูกล็อก · ติดต่อ Sales'; err.style.display='block'; return; }
+  if (Date.now() > state.otp.expiresAt) { err.textContent='OTP หมดอายุ · กดขอใหม่'; err.style.display='block'; return; }
+  if (code !== state.otp.expected) {
+    state.otp.attempts++;
+    const left = 5 - state.otp.attempts;
+    if (left <= 0) { state.otp.locked = true; err.textContent='ผิดเกิน 5 ครั้ง · ล็อก 30 นาที'; }
+    else err.textContent = `OTP ไม่ถูกต้อง · เหลือ ${left} ครั้ง`;
+    err.style.display = 'block';
+    return;
+  }
+  clearInterval(countdownTimer);
+  clearInterval(resendTimer);
+  toast('✓ ยืนยันตัวตนสำเร็จ', 'success');
+  loadStep2();
+  goto('2');
+}
+
+// ============================================================
+// Screen 2 — Unit Selection
+// ============================================================
+function loadStep2() {
+  const c = state.customer;
+  const masked = c.idCard.length === 13 || /^\d+$/.test(c.idCard)
+    ? `${c.idCard.slice(0,1)}-${c.idCard.slice(1,3)}XX-XXXXX-XX-${c.idCard.slice(-1)}`
+    : `${c.idCard.slice(0,2)}xxxxx`;
+  const phoneMasked = `${c.phone.slice(0,3)}-XXX-${c.phone.slice(-4)}`;
+  const nameDisplay = c.nameTH !== '— ไม่มีข้อมูล —' ? c.nameTH : c.nameEN;
+  const nobleIdBadge = c.nobleIdMember
+    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:#000;color:#fff;font-size:10px;padding:2px 8px;font-weight:500;letter-spacing:.4px;margin-left:8px">★ Noble ID Member</span>`
+    : '';
+  document.getElementById('custInfo').innerHTML = `
+    <div><b>${nameDisplay} (${c.id.replace('NBL-','')})</b>${nobleIdBadge}</div>
+    <div>${t('custIdLabel')} : ${masked}</div>
+    <div>${t('custPhoneLabel')} : ${phoneMasked}</div>
+  `;
+
+  document.getElementById('nobleIdNotice').style.display = state.mode === 'B' ? 'block' : 'none';
+  document.getElementById('selectAllRow').style.display = state.mode === 'B' ? 'none' : 'flex';
+  // Translate sub-text + Noble ID notice
+  document.getElementById('selSub').textContent = t('selSub');
+  document.getElementById('nobleIdNoticeText').innerHTML = `<b>${t('nobleIdNoticeTitle')}</b> ${t('nobleIdNoticeBody')}`;
+
+  // Pre-select for Scenario B (all units locked + checked)
+  if (state.mode === 'B') {
+    state.selectedUnitIds = state.units.map(u => u.id);
+  } else {
+    state.selectedUnitIds = [];
+  }
+
+  renderUnitGrid();
+}
+
+function renderUnitGrid() {
+  const grid = document.getElementById('unitGrid');
+  grid.innerHTML = state.units.map(u => {
+    const checked = state.selectedUnitIds.includes(u.id);
+    const locked = !u.selectable;
+    const cls = `unit-card ${checked?'checked':''} ${locked?'locked':''}`;
+    const cbCls = `checkbox ${checked?'checked':''} ${locked?'locked':''}`;
+    return `
+      <div class="${cls}" onclick="toggleUnit('${u.id}')">
+        <div class="${cbCls}"></div>
+        <div class="info">
+          <div class="pj-name">${u.name} – ${u.code}</div>
+          <div class="pj-meta">โอนกรรมสิทธิ์: ${u.transferDate}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Update select all
+  if (state.mode !== 'B') {
+    const allSelectable = state.units.filter(u => u.selectable);
+    const allChecked = allSelectable.every(u => state.selectedUnitIds.includes(u.id));
+    document.getElementById('chkAll').classList.toggle('checked', allChecked);
+  }
+
+  // Update continue button
+  document.getElementById('continueToA3').disabled = state.selectedUnitIds.length === 0;
+}
+
+function toggleUnit(id) {
+  const unit = state.units.find(u => u.id === id);
+  if (!unit.selectable) {
+    toast('ห้องนี้ไม่สามารถเลือกแยกได้ · จะเปลี่ยนข้อมูลพร้อมกันทุกห้อง', 'info');
+    return;
+  }
+  const idx = state.selectedUnitIds.indexOf(id);
+  if (idx >= 0) state.selectedUnitIds.splice(idx, 1);
+  else state.selectedUnitIds.push(id);
+  renderUnitGrid();
+}
+
+function toggleSelectAll() {
+  const selectables = state.units.filter(u => u.selectable);
+  if (selectables.every(u => state.selectedUnitIds.includes(u.id))) {
+    state.selectedUnitIds = [];
+  } else {
+    state.selectedUnitIds = selectables.map(u => u.id);
+  }
+  renderUnitGrid();
+}
+
+function continueToForm() {
+  if (state.selectedUnitIds.length === 0) return;
+  loadStep3();
+  goto('3');
+}
+
+// ============================================================
+// Screen 3 — Change Form
+// ============================================================
+const FIELD_DEFS = [
+  { key:'name', th:'ชื่อ – นามสกุล', en:'Name – Surname' },
+  { key:'passport', th:'เลขที่ Passport', en:'Passport Number (Foreign customer)', hideIf:'thai' },
+  { key:'idCard', th:'เลขบัตรประชาชน', en:'ID Card Number', hideIf:'foreign' },
+  { key:'email', th:'อีเมล', en:'Email' },
+  { key:'phone', th:'เบอร์โทรศัพท์', en:'Phone Number' },
+  { key:'addrId', th:'ที่อยู่ตามบัตรประชาชน', en:'ID Card Address' },
+  { key:'addrMail', th:'ที่อยู่จัดส่งเอกสาร', en:'Mailing Address' },
+  { key:'receipt', th:'รูปแบบใบเสร็จรับเงิน', en:'Receipt Type', conditional:'receiptEligible' }
+];
+
+// Check if any selected unit allows receipt change
+// Rule: at least 1 unit has contractStatus = 'active' AND currentReceipt = 'paper'
+function isReceiptEligible() {
+  const units = state.units.filter(u => state.selectedUnitIds.includes(u.id));
+  return units.some(u => u.contractStatus === 'active' && u.currentReceipt === 'paper');
+}
+
+function isFieldVisible(f) {
+  if (f.hideIf === state.customer?.type) return false;
+  if (f.conditional === 'receiptEligible' && !isReceiptEligible()) return false;
+  return true;
+}
+
+// Auto-format Thai ID card as X-XXXX-XXXXX-XX-X (1-4-5-2-1 = 13 digits)
+function formatThaiIdCard(raw) {
+  const d = (raw || '').replace(/[^0-9]/g, '').slice(0, 13);
+  if (!d) return '';
+  let out = d[0];
+  if (d.length > 1) out += '-' + d.slice(1, 5);
+  if (d.length > 5) out += '-' + d.slice(5, 10);
+  if (d.length > 10) out += '-' + d.slice(10, 12);
+  if (d.length > 12) out += '-' + d.slice(12, 13);
+  return out;
+}
+
+function getCurrentDisplay(key) {
+  const cv = state.customer.currentValues;
+  if (key === 'name') {
+    const n = cv.name;
+    const th = `${n.titleTH || ''} ${n.firstTH || ''} ${n.lastTH || ''}`.trim();
+    const en = `${n.titleEN || ''} ${n.firstEN || ''} ${n.lastEN || ''}`.trim();
+    if (state.lang === 'en') {
+      return en && th ? `${en} (${th})` : (en || th || '—');
+    }
+    return th && en ? `${th} (${en})` : (th || en || '—');
+  }
+  // Address fields show TH + EN on separate lines (primary lang first)
+  if (key === 'addrId' || key === 'addrMail') {
+    const thKey = key === 'addrId' ? 'addrIdTH' : 'addrMailTH';
+    const enKey = key === 'addrId' ? 'addrIdEN' : 'addrMailEN';
+    if (state.lang === 'en') {
+      return `<span style="display:block">EN: ${cv[enKey] || '—'}</span><span style="display:block">TH: ${cv[thKey] || '—'}</span>`;
+    }
+    return `<span style="display:block">TH: ${cv[thKey] || '—'}</span><span style="display:block">EN: ${cv[enKey] || '—'}</span>`;
+  }
+  return cv[key];
+}
+
+// Required keys per field (used for validation)
+const ADDR_REQUIRED = ['country','addrNoTH','provinceTH','districtTH','subDistrictTH','postalTH','addrNoEN','provinceEN','districtEN','subDistrictEN','postalEN'];
+const FIELD_REQUIREMENTS = {
+  name: ['titleTH','firstTH','lastTH','titleEN','firstEN','lastEN'],
+  idCard: ['idNew'],
+  email: ['emailNew','emailConfirm'],
+  phone: ['phoneNew'],
+  addrId: ADDR_REQUIRED,
+  addrMail: ADDR_REQUIRED,
+  receipt: [],
+  passport: ['passportNew','passportCountry']
+};
+
+// Default values when a field is enabled (so toggle has initial state)
+const ADDR_DEFAULTS = { country:'ไทย / Thailand' };
+const FIELD_DEFAULTS = {
+  name: { reason:'change', titleTH:'นางสาว', firstTH:'', lastTH:'', titleEN:'Mrs.', firstEN:'', lastEN:'' },
+  receipt: { rType:'eReceipt' },
+  phone: { subType:'change', phoneNew:'' },
+  addrId: ADDR_DEFAULTS,
+  addrMail: ADDR_DEFAULTS,
+  passport: { passportCountry:'' }
+};
+
+// Province + district data (sample — production should use complete TH dataset)
+// Sub-district format: [TH name, EN name, postal code]
+const TH_PROVINCES = {
+  'กรุงเทพมหานคร': {
+    en: 'Bangkok',
+    districts: {
+      'พระโขนง': { en:'Phra Khanong', sub:[['บางจาก','Bang Chak','10260'],['พระโขนง','Phra Khanong','10110']]},
+      'วัฒนา': { en:'Watthana', sub:[['คลองเตยเหนือ','Khlong Toei Nuea','10110'],['คลองตันเหนือ','Khlong Tan Nuea','10110']]},
+      'จตุจักร': { en:'Chatuchak', sub:[['จอมพล','Chom Phon','10900'],['จันทรเกษม','Chan Kasem','10900']]},
+      'ห้วยขวาง': { en:'Huai Khwang', sub:[['ห้วยขวาง','Huai Khwang','10310'],['สามเสนนอก','Sam Sen Nok','10310']]}
+    }
+  },
+  'ปทุมธานี': {
+    en: 'Pathum Thani',
+    districts: {
+      'ลำลูกกา': { en:'Lam Luk Ka', sub:[['คูคต','Khu Khot','12130'],['บึงคำพร้อย','Bueng Kham Phroi','12150']]},
+      'ธัญบุรี': { en:'Thanyaburi', sub:[['ประชาธิปัตย์','Prachathipat','12130'],['บึงยี่โถ','Bueng Yi Tho','12130']]}
+    }
+  },
+  'นนทบุรี': {
+    en: 'Nonthaburi',
+    districts: {
+      'ปากเกร็ด': { en:'Pak Kret', sub:[['ปากเกร็ด','Pak Kret','11120'],['บางตลาด','Bang Talat','11120']]},
+      'เมืองนนทบุรี': { en:'Mueang Nonthaburi', sub:[['สวนใหญ่','Suan Yai','11000'],['บางกระสอ','Bang Kraso','11000']]}
+    }
+  },
+  'สมุทรปราการ': {
+    en: 'Samut Prakan',
+    districts: {
+      'เมืองสมุทรปราการ': { en:'Mueang Samut Prakan', sub:[['ปากน้ำ','Pak Nam','10270'],['บางเมือง','Bang Mueang','10270']]},
+      'บางพลี': { en:'Bang Phli', sub:[['บางพลีใหญ่','Bang Phli Yai','10540'],['บางแก้ว','Bang Kaeo','10540']]}
+    }
+  }
+};
+
+function loadStep3() {
+  // Init field state
+  FIELD_DEFS.forEach(f => {
+    if (!state.changes[f.key]) state.changes[f.key] = { enabled:false, values:{} };
+  });
+  renderFields();
+  setupFileUpload();
+  updateContinueBtn();
+}
+
+function renderFields() {
+  const list = document.getElementById('fieldList');
+  const visible = FIELD_DEFS.filter(f => isFieldVisible(f));
+  list.innerHTML = visible.map(f => {
+    const c = state.changes[f.key];
+    const checked = c.enabled;
+    const cur = getCurrentDisplay(f.key);
+    return `
+      <div class="field-card ${checked?'checked':''}" id="row-${f.key}">
+        <div class="field-card-head" onclick="toggleField('${f.key}')">
+          <div class="checkbox ${checked?'checked':''}"></div>
+          <div class="field-label-block">
+            <div>
+              <div class="field-name">${fieldName(f)}</div>
+              <div class="field-en">${fieldNameSecondary(f)}</div>
+            </div>
+            <div class="field-cur">${t('currentData')} <b>${cur}</b></div>
+          </div>
+        </div>
+        <div class="field-body" id="body-${f.key}" style="display:${checked?'block':'none'}"></div>
+      </div>
+    `;
+  }).join('');
+
+  // Render bodies for checked fields
+  visible.forEach(f => {
+    const c = state.changes[f.key];
+    if (c.enabled) renderFieldBody(f.key);
+  });
+}
+
+function renderFieldBody(key) {
+  const c = state.changes[key];
+  const v = c.values;
+  const safe = (s) => (s == null || s === undefined) ? '' : String(s);
+  let html = '';
+  switch (key) {
+    case 'name':
+      const reason = v.reason || 'change';
+      html = `
+        <div style="margin-bottom:14px;padding:12px 14px;background:var(--bg)">
+          <div style="font-size:11px;color:var(--cement);font-weight:500;margin-bottom:8px">${t('nameReason')}</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap">
+            <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nameReason" data-k="reason" value="change" ${reason==='change'?'checked':''}>
+              <span>${t('nameReasonChange')}</span>
+            </label>
+            <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nameReason" data-k="reason" value="typo" ${reason==='typo'?'checked':''}>
+              <span>${t('nameReasonTypo')}</span>
+            </label>
+          </div>
+        </div>
+        <div class="row-3col">
+          <div><label class="form-label">${t('titleLabel')} *</label>
+            <select class="form-input" data-k="titleTH">
+              <option ${v.titleTH==='นางสาว'?'selected':''}>นางสาว</option>
+              <option ${v.titleTH==='นาง'?'selected':''}>นาง</option>
+              <option ${v.titleTH==='นาย'?'selected':''}>นาย</option>
+            </select>
+          </div>
+          <div><label class="form-label">${t('firstNameTH')} *</label>
+            <input class="form-input" data-k="firstTH" value="${safe(v.firstTH)}" placeholder="${tr('กรอกชื่อ','First name in Thai')}"></div>
+          <div><label class="form-label">${t('lastNameTH')} *</label>
+            <input class="form-input" data-k="lastTH" value="${safe(v.lastTH)}" placeholder="${tr('กรอกนามสกุล','Last name in Thai')}"></div>
+        </div>
+        <div class="row-3col">
+          <div><label class="form-label">${tr('Title (EN)','Title (EN)')} *</label>
+            <select class="form-input" data-k="titleEN">
+              <option ${v.titleEN==='Mrs.'?'selected':''}>Mrs.</option>
+              <option ${v.titleEN==='Ms.'?'selected':''}>Ms.</option>
+              <option ${v.titleEN==='Mr.'?'selected':''}>Mr.</option>
+            </select>
+          </div>
+          <div><label class="form-label">${t('firstNameEN')} *</label>
+            <input class="form-input" data-k="firstEN" value="${safe(v.firstEN)}" placeholder="${tr('First name','First name in English')}"></div>
+          <div><label class="form-label">${t('lastNameEN')} *</label>
+            <input class="form-input" data-k="lastEN" value="${safe(v.lastEN)}" placeholder="${tr('Last name','Last name in English')}"></div>
+        </div>
+        ${reason==='change' ? `
+          <div class="field-warn">
+            ${t('nameWarn1')}<br>
+            ${t('nameWarn2TH')}<br>
+            ${t('nameWarn3')}
+          </div>
+        ` : `
+          <div style="background:var(--bg);border-left:3px solid var(--ok);padding:10px 14px;font-size:12px;color:#155724;margin-top:10px;font-weight:500">
+            ${t('nameTypoOk')}
+          </div>
+        `}
+      `;
+      break;
+    case 'idCard':
+      const digitCount = (v.idNew || '').replace(/[^0-9]/g, '').length;
+      const isComplete = digitCount === 13;
+      html = `
+        <div class="form-group">
+          <label class="form-label">${t('idCardNew')} <span style="color:${isComplete?'var(--ok)':'var(--cement)'};font-weight:500">(${digitCount}/13 ${t('idDigits')} ${isComplete?'✓':''})</span></label>
+          <input class="form-input" data-k="idNew" value="${safe(v.idNew)}" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" inputmode="numeric">
+        </div>
+        <div class="field-warn">${t('idCardWarn')}</div>
+      `;
+      break;
+    case 'email':
+      const isNobleIdMember = state.customer.nobleIdMember;
+      html = `
+        <div class="row-2col">
+          <div><label class="form-label">${t('emailNew')}</label>
+            <input class="form-input" type="email" data-k="emailNew" value="${safe(v.emailNew)}" placeholder="your@email.com"></div>
+          <div><label class="form-label">${t('emailConfirm')}</label>
+            <input class="form-input" type="email" data-k="emailConfirm" value="${safe(v.emailConfirm)}" placeholder="your@email.com"></div>
+        </div>
+        ${isNobleIdMember ? `
+          <div style="background:#FFF8F4;border-left:3px solid var(--brick);padding:12px 14px;font-size:12px;color:#7A4D00;margin-top:10px;line-height:1.6">
+            <b style="color:var(--brick)">${t('emailNobleIdTitle')}</b><br>
+            ${t('emailNobleIdIntro')}
+            <ol style="margin:6px 0 0 18px;padding:0">
+              <li>${t('emailNobleId1')}</li>
+              <li>${t('emailNobleId2')}</li>
+              <li>${t('emailNobleId3')}</li>
+              <li>${t('emailNobleId4')}</li>
+            </ol>
+          </div>
+        ` : `
+          <div style="font-size:11px;color:var(--cement);margin-top:8px">
+            ${t('emailNotMember')}
+          </div>
+        `}
+      `;
+      break;
+    case 'phone':
+      html = `
+        <div class="form-group">
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;color:var(--cement);font-weight:500;margin-bottom:6px">${t('phoneChangeType')}</div>
+            <label style="font-size:13px;margin-right:20px"><input type="radio" name="ph_${key}" data-k="subType" value="change" ${v.subType!=='add'?'checked':''}> ${t('phoneChange')}</label>
+            <label style="font-size:13px"><input type="radio" name="ph_${key}" data-k="subType" value="add" ${v.subType==='add'?'checked':''}> ${t('phoneAdd')}</label>
+          </div>
+          <label class="form-label">${t('phoneNew')} *</label>
+          <input class="form-input" type="tel" data-k="phoneNew" value="${safe(v.phoneNew)}" placeholder="08X-XXX-XXXX">
+        </div>
+      `;
+      break;
+    case 'addrId':
+    case 'addrMail':
+      html = renderAddressForm(v, key);
+      break;
+    case 'receipt':
+      const eligibleUnits = state.units.filter(u => state.selectedUnitIds.includes(u.id) && u.contractStatus === 'active' && u.currentReceipt === 'paper');
+      const unitNames = eligibleUnits.map(u => `${u.name} ${u.code}`).join(', ');
+      html = `
+        <div style="font-size:12px;color:var(--cement);margin-bottom:10px;background:var(--bg);padding:8px 12px;border-radius:2px">
+          ${t('receiptEligibleNote')} <b style="color:#000">${unitNames}</b><br>
+          ${t('receiptEligibleSub')}
+        </div>
+        <div class="form-group">
+          <label style="font-size:13px;display:flex;align-items:center;gap:8px"><input type="radio" name="rt" data-k="rType" value="eReceipt" checked> ${t('receiptChangeTo')} <b>E-Receipt ${tr('(อิเล็กทรอนิกส์)','(Electronic)')}</b></label>
+        </div>
+        <div class="field-warn" style="background:#FEF6E7;color:#7A4D00;border-left-color:var(--warn)">
+          ${t('receiptOnly')}
+        </div>
+      `;
+      break;
+    case 'passport':
+      html = `
+        <div class="row-2col">
+          <div class="form-group"><label class="form-label">${t('passportNumNew')}</label>
+            <input class="form-input" data-k="passportNew" value="${safe(v.passportNew)}" placeholder="A1234567"></div>
+          <div class="form-group"><label class="form-label">${t('passportCountry')}</label>
+            <select class="form-input" data-k="passportCountry">
+              <option value="">${t('passportSelectCountry')}</option>
+              <option ${v.passportCountry==='United States'?'selected':''}>United States</option>
+              <option ${v.passportCountry==='United Kingdom'?'selected':''}>United Kingdom</option>
+              <option ${v.passportCountry==='Japan'?'selected':''}>Japan</option>
+              <option ${v.passportCountry==='China'?'selected':''}>China</option>
+              <option ${v.passportCountry==='Singapore'?'selected':''}>Singapore</option>
+              <option ${v.passportCountry==='Malaysia'?'selected':''}>Malaysia</option>
+              <option ${v.passportCountry==='Korea'?'selected':''}>South Korea</option>
+              <option ${v.passportCountry==='India'?'selected':''}>India</option>
+              <option ${v.passportCountry==='Australia'?'selected':''}>Australia</option>
+              <option ${v.passportCountry==='Germany'?'selected':''}>Germany</option>
+              <option ${v.passportCountry==='France'?'selected':''}>France</option>
+              <option ${v.passportCountry==='Other'?'selected':''}>Other</option>
+            </select></div>
+        </div>
+        <div class="field-warn">${t('passportWarn')}</div>
+      `;
+      break;
+  }
+  const body = document.getElementById('body-' + key);
+  body.innerHTML = html;
+  // === Field pairs that mirror TH ↔ EN ===
+  // Base address fields (always mirrored)
+  const ADDR_MIRROR_PAIRS_BASE = [
+    ['addrNoTH','addrNoEN'],
+    ['buildingTH','buildingEN'],
+    ['mooTH','mooEN'],
+    ['soiTH','soiEN'],
+    ['roadTH','roadEN']
+  ];
+  // For non-Thailand country: also mirror province/district/sub/postal (since they're free text inputs)
+  const isNonThailand = (key === 'addrId' || key === 'addrMail') && c.values.country && c.values.country !== 'ไทย / Thailand';
+  const ADDR_MIRROR_PAIRS = isNonThailand
+    ? [...ADDR_MIRROR_PAIRS_BASE, ['provinceTH','provinceEN'], ['districtTH','districtEN'], ['subDistrictTH','subDistrictEN'], ['postalTH','postalEN']]
+    : ADDR_MIRROR_PAIRS_BASE;
+  // For Foreign customer: mirror name (since they don't know Thai spelling)
+  const NAME_MIRROR_PAIRS = (state.customer.type === 'foreign') ? [
+    ['firstTH','firstEN'],
+    ['lastTH','lastEN']
+  ] : [];
+  // Title mapping for foreign customer (EN ↔ TH)
+  const TITLE_MAP_EN_TO_TH = { 'Mr.':'นาย', 'Mrs.':'นาง', 'Ms.':'นางสาว' };
+  const TITLE_MAP_TH_TO_EN = { 'นาย':'Mr.', 'นาง':'Mrs.', 'นางสาว':'Ms.' };
+
+  function mirrorPair(thKey, enKey, changedKey, value) {
+    let targetKey = null;
+    if (changedKey === thKey && (!c.values[enKey] || c.values['_mirror_'+enKey])) {
+      targetKey = enKey;
+    } else if (changedKey === enKey && (!c.values[thKey] || c.values['_mirror_'+thKey])) {
+      targetKey = thKey;
+    }
+    if (targetKey) {
+      c.values[targetKey] = value;
+      c.values['_mirror_'+targetKey] = true;
+      // ✅ Update the DOM input directly so user sees the change immediately
+      const targetInput = body.querySelector(`[data-k="${targetKey}"]`);
+      if (targetInput && targetInput.value !== value) targetInput.value = value;
+    }
+    // Mark the source field as user-edited (no longer auto-fillable)
+    c.values['_mirror_'+changedKey] = false;
+  }
+
+  body.querySelectorAll('[data-k]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const k = inp.dataset.k;
+      let value = inp.value;
+
+      // === ID Card auto-format ===
+      if (k === 'idNew' && state.customer.type !== 'foreign') {
+        const cursorPos = inp.selectionStart;
+        const oldValueLength = inp.value.length;
+        value = formatThaiIdCard(value);
+        if (inp.value !== value) {
+          inp.value = value;
+          // Try to maintain cursor position relative to digit count
+          const newCursor = Math.min(cursorPos + (value.length - oldValueLength), value.length);
+          try { inp.setSelectionRange(newCursor, newCursor); } catch(e){}
+        }
+        // Update label counter (re-render only the label)
+        const lbl = inp.closest('.form-group')?.querySelector('.form-label');
+        if (lbl) {
+          const dc = value.replace(/[^0-9]/g,'').length;
+          const ok = dc === 13;
+          lbl.innerHTML = `เลขบัตรประชาชนใหม่ <span style="color:${ok?'var(--ok)':'var(--cement)'};font-weight:500">(${dc}/13 หลัก ${ok?'✓':''})</span>`;
+        }
+      }
+
+      c.values[k] = value;
+
+      // Address mirroring (for addrId / addrMail)
+      if (key === 'addrId' || key === 'addrMail') {
+        for (const [thKey, enKey] of ADDR_MIRROR_PAIRS) {
+          if (k === thKey || k === enKey) {
+            mirrorPair(thKey, enKey, k, value);
+            break;
+          }
+        }
+      }
+
+      // Name mirroring (foreign customer only)
+      if (key === 'name' && NAME_MIRROR_PAIRS.length) {
+        for (const [thKey, enKey] of NAME_MIRROR_PAIRS) {
+          if (k === thKey || k === enKey) {
+            mirrorPair(thKey, enKey, k, value);
+            break;
+          }
+        }
+      }
+
+      updateContinueBtn();
+    });
+    inp.addEventListener('change', () => {
+      const k = inp.dataset.k;
+      c.values[k] = inp.value;
+      // For sub-district: auto-derive EN counterpart + postal code
+      if (k === 'subDistrictTH') {
+        const p = c.values.provinceTH, d = c.values.districtTH;
+        const sub = TH_PROVINCES[p]?.districts?.[d]?.sub.find(s => s[0] === inp.value);
+        c.values.subDistrictEN = sub ? sub[1] : '';
+        // Auto-fill postal code (only if user hasn't manually changed it or it's empty)
+        if (sub && (!c.values.postalTH || c.values._postalAuto)) {
+          c.values.postalTH = sub[2];
+          c.values.postalEN = sub[2];
+          c.values._postalAuto = true; // mark as auto-filled
+        }
+        renderFields();
+      }
+      // Track manual postal edit
+      if (k === 'postalTH' || k === 'postalEN') {
+        c.values._postalAuto = false;
+      }
+      // Title mapping (foreign customer only, on dropdown change)
+      if (key === 'name' && state.customer.type === 'foreign') {
+        let targetTitleKey = null, targetTitleVal = null;
+        if (k === 'titleEN' && (!c.values.titleTH || c.values._mirror_titleTH)) {
+          targetTitleKey = 'titleTH';
+          targetTitleVal = TITLE_MAP_EN_TO_TH[inp.value] || '';
+        } else if (k === 'titleTH' && (!c.values.titleEN || c.values._mirror_titleEN)) {
+          targetTitleKey = 'titleEN';
+          targetTitleVal = TITLE_MAP_TH_TO_EN[inp.value] || '';
+        }
+        if (targetTitleKey) {
+          c.values[targetTitleKey] = targetTitleVal;
+          c.values['_mirror_'+targetTitleKey] = true;
+          const tInp = body.querySelector(`[data-k="${targetTitleKey}"]`);
+          if (tInp) tInp.value = targetTitleVal;
+        }
+        if (k === 'titleEN' || k === 'titleTH') c.values['_mirror_'+k] = false;
+      }
+      // For name reason: re-render to update warning visibility
+      if (k === 'reason') {
+        renderFields();
+      }
+      updateContinueBtn();
+    });
+  });
+}
+
+function toggleField(key) {
+  const c = state.changes[key];
+  c.enabled = !c.enabled;
+  // Pre-populate defaults when enabling (so doc rendering doesn't show "undefined")
+  if (c.enabled && FIELD_DEFAULTS[key]) {
+    Object.keys(FIELD_DEFAULTS[key]).forEach(k => {
+      if (c.values[k] === undefined) c.values[k] = FIELD_DEFAULTS[key][k];
+    });
+  }
+  renderFields();
+  updateContinueBtn();
+}
+
+// Module-level address formatters (used in doc + success page)
+function formatAddrTH(a) {
+  const s = (x) => (x == null) ? '' : String(x);
+  const parts = [
+    s(a.addrNoTH), s(a.buildingTH),
+    a.mooTH ? `ม.${a.mooTH}` : '',
+    a.soiTH ? `ซ.${a.soiTH}` : '',
+    a.roadTH ? `ถ.${a.roadTH}` : '',
+    a.subDistrictTH ? `แขวง/ตำบล${a.subDistrictTH}` : '',
+    a.districtTH ? `เขต/อำเภอ${a.districtTH}` : '',
+    s(a.provinceTH), s(a.postalTH)
+  ].filter(p => p && p.trim());
+  return parts.join(' ').trim();
+}
+function formatAddrEN(a) {
+  const s = (x) => (x == null) ? '' : String(x);
+  const parts = [
+    s(a.addrNoEN), s(a.buildingEN),
+    a.mooEN ? `Moo ${a.mooEN}` : '',
+    a.soiEN ? `Soi ${a.soiEN}` : '',
+    a.roadEN ? `${a.roadEN} Rd.` : '',
+    s(a.subDistrictEN), s(a.districtEN), s(a.provinceEN), s(a.postalEN)
+  ].filter(p => p && p.trim());
+  return parts.join(', ').trim();
+}
+
+// === Render structured address form (TH + EN cards) ===
+function renderAddressForm(v, key) {
+  const safe = (s) => (s == null) ? '' : String(s);
+  const isThailand = !v.country || v.country === 'ไทย / Thailand';
+  const isForeignCustomer = state.customer.type === 'foreign';
+  const provincesTH = Object.keys(TH_PROVINCES);
+  const selectedProvinceTH = v.provinceTH || '';
+  const selectedDistrictTH = v.districtTH || '';
+  const districtsTH = selectedProvinceTH && TH_PROVINCES[selectedProvinceTH] ? Object.keys(TH_PROVINCES[selectedProvinceTH].districts) : [];
+  const subsTH = (selectedProvinceTH && selectedDistrictTH && TH_PROVINCES[selectedProvinceTH]?.districts[selectedDistrictTH])
+    ? TH_PROVINCES[selectedProvinceTH].districts[selectedDistrictTH].sub.map(s=>s[0]) : [];
+  const provincesEN = provincesTH.map(p => TH_PROVINCES[p]?.en || p);
+  const selectedProvinceEN = (selectedProvinceTH && TH_PROVINCES[selectedProvinceTH])
+    ? TH_PROVINCES[selectedProvinceTH].en : (v.provinceEN || '');
+  const districtsEN = (selectedProvinceTH && TH_PROVINCES[selectedProvinceTH])
+    ? Object.keys(TH_PROVINCES[selectedProvinceTH].districts).map(d => TH_PROVINCES[selectedProvinceTH].districts[d]?.en || d) : [];
+  const selectedDistrictEN = (selectedProvinceTH && selectedDistrictTH && TH_PROVINCES[selectedProvinceTH]?.districts?.[selectedDistrictTH])
+    ? TH_PROVINCES[selectedProvinceTH].districts[selectedDistrictTH].en : (v.districtEN || '');
+  const subsEN = (selectedProvinceTH && selectedDistrictTH && TH_PROVINCES[selectedProvinceTH]?.districts?.[selectedDistrictTH])
+    ? TH_PROVINCES[selectedProvinceTH].districts[selectedDistrictTH].sub.map(s=>s[1]) : [];
+
+  const opt = (val, options, placeholder) => {
+    let html = `<option value="">${placeholder}</option>`;
+    options.forEach(o => {
+      html += `<option value="${o}" ${val===o?'selected':''}>${o}</option>`;
+    });
+    return html;
+  };
+
+  // Helper note for foreign customer
+  const foreignHint = isForeignCustomer
+    ? `<div style="background:#FFF8F4;border-left:3px solid var(--brick);padding:10px 14px;font-size:12px;color:#7A4D00;margin-bottom:14px">${t('foreignAddrHint')}</div>`
+    : '';
+
+  // For non-Thailand: switch province/district/sub to text inputs
+  const provinceFieldTH = isThailand
+    ? `<select class="form-input" data-k="provinceTH" onchange="onAddrChange('${key}','provinceTH',this.value)">${opt(selectedProvinceTH, provincesTH, 'Please Select')}</select>`
+    : `<input class="form-input" data-k="provinceTH" value="${safe(v.provinceTH)}" placeholder='เช่น "California" หรือ "-"'>`;
+  const districtFieldTH = isThailand
+    ? `<select class="form-input" data-k="districtTH" onchange="onAddrChange('${key}','districtTH',this.value)" ${!selectedProvinceTH?'disabled':''}>${opt(selectedDistrictTH, districtsTH, 'Please select')}</select>`
+    : `<input class="form-input" data-k="districtTH" value="${safe(v.districtTH)}" placeholder='เช่น "Los Angeles" หรือ "-"'>`;
+  const subFieldTH = isThailand
+    ? `<select class="form-input" data-k="subDistrictTH" ${!selectedDistrictTH?'disabled':''}>${opt(v.subDistrictTH||'', subsTH, 'Please select')}</select>`
+    : `<input class="form-input" data-k="subDistrictTH" value="${safe(v.subDistrictTH)}" placeholder='เช่น "Downtown" หรือ "-"'>`;
+  const postalFieldTH = isThailand
+    ? `<input class="form-input" data-k="postalTH" value="${safe(v.postalTH)}" maxlength="5">`
+    : `<input class="form-input" data-k="postalTH" value="${safe(v.postalTH)}" maxlength="20" placeholder='ZIP code หรือ "-"'>`;
+
+  const provinceFieldEN = isThailand
+    ? `<select class="form-input" data-k="provinceEN">${opt(selectedProvinceEN, provincesEN, 'Please Select')}</select>`
+    : `<input class="form-input" data-k="provinceEN" value="${safe(v.provinceEN)}" placeholder='e.g. "California" or "-"'>`;
+  const districtFieldEN = isThailand
+    ? `<select class="form-input" data-k="districtEN" ${!selectedProvinceTH?'disabled':''}>${opt(selectedDistrictEN, districtsEN, 'Please select')}</select>`
+    : `<input class="form-input" data-k="districtEN" value="${safe(v.districtEN)}" placeholder='e.g. "Los Angeles" or "-"'>`;
+  const subFieldEN = isThailand
+    ? `<select class="form-input" data-k="subDistrictEN" ${!selectedDistrictTH?'disabled':''}>${opt(v.subDistrictEN||'', subsEN, 'Please select')}</select>`
+    : `<input class="form-input" data-k="subDistrictEN" value="${safe(v.subDistrictEN)}" placeholder='e.g. "Downtown" or "-"'>`;
+  const postalFieldEN = isThailand
+    ? `<input class="form-input" data-k="postalEN" value="${safe(v.postalEN)}" maxlength="5">`
+    : `<input class="form-input" data-k="postalEN" value="${safe(v.postalEN)}" maxlength="20" placeholder='ZIP code or "-"'>`;
+
+  return `
+    <div class="addr-country-row">
+      <label>${t('addrCountry')} *</label>
+      <select data-k="country" onchange="onAddrChange('${key}','country',this.value)">
+        <option ${(v.country==='ไทย / Thailand'||!v.country)?'selected':''}>ไทย / Thailand</option>
+        <option ${v.country==='United States'?'selected':''}>United States</option>
+        <option ${v.country==='United Kingdom'?'selected':''}>United Kingdom</option>
+        <option ${v.country==='Japan'?'selected':''}>Japan</option>
+        <option ${v.country==='Singapore'?'selected':''}>Singapore</option>
+        <option ${v.country==='China'?'selected':''}>China</option>
+        <option ${v.country==='Other'?'selected':''}>Other</option>
+      </select>
+    </div>
+    ${!isThailand ? `<div style="background:#FFF8F4;border-left:3px solid var(--brick);padding:10px 14px;font-size:12px;color:#7A4D00;margin-bottom:14px">${t('foreignCountryHint')}</div>` : ''}
+    ${foreignHint}
+    <div class="addr-cols">
+      <div class="addr-card">
+        <h4>${t('thaiCard')} ${isForeignCustomer ? `<span style="font-size:11px;color:var(--cement);font-weight:400">${tr('(ใช้ภาษาอังกฤษได้ถ้าไม่มีภาษาไทย)','(Use English if Thai not available)')}</span>`:''}</h4>
+        <div class="form-group"><label class="form-label">${t('addrNo')} *</label>
+          <input class="form-input" data-k="addrNoTH" value="${safe(v.addrNoTH)}"></div>
+        <div class="form-group"><label class="form-label">${t('addrBuilding')}</label>
+          <input class="form-input" data-k="buildingTH" value="${safe(v.buildingTH)}"></div>
+        <div class="addr-2">
+          <div class="form-group"><label class="form-label">${t('addrMoo')}</label>
+            <input class="form-input" data-k="mooTH" value="${safe(v.mooTH)}"></div>
+          <div class="form-group"><label class="form-label">${t('addrSoi')}</label>
+            <input class="form-input" data-k="soiTH" value="${safe(v.soiTH)}"></div>
+        </div>
+        <div class="addr-2">
+          <div class="form-group"><label class="form-label">${t('addrRoad')}</label>
+            <input class="form-input" data-k="roadTH" value="${safe(v.roadTH)}"></div>
+          <div class="form-group"><label class="form-label">${t('addrProvince')} *</label>${provinceFieldTH}</div>
+        </div>
+        <div class="addr-2">
+          <div class="form-group"><label class="form-label">${t('addrDistrict')} *</label>${districtFieldTH}</div>
+          <div class="form-group"><label class="form-label">${t('addrSubDistrict')} *</label>${subFieldTH}</div>
+        </div>
+        <div class="form-group"><label class="form-label">${t('addrPostal')} *</label>${postalFieldTH}</div>
+      </div>
+
+      <div class="addr-card">
+        <h4>${t('englishCard')}</h4>
+        <div class="form-group"><label class="form-label">${t('addrNo')} *</label>
+          <input class="form-input" data-k="addrNoEN" value="${safe(v.addrNoEN)}"></div>
+        <div class="form-group"><label class="form-label">${t('addrBuilding')}</label>
+          <input class="form-input" data-k="buildingEN" value="${safe(v.buildingEN)}"></div>
+        <div class="addr-2">
+          <div class="form-group"><label class="form-label">${t('addrMoo')}</label>
+            <input class="form-input" data-k="mooEN" value="${safe(v.mooEN)}"></div>
+          <div class="form-group"><label class="form-label">${t('addrSoi')}</label>
+            <input class="form-input" data-k="soiEN" value="${safe(v.soiEN)}"></div>
+        </div>
+        <div class="addr-2">
+          <div class="form-group"><label class="form-label">${t('addrRoad')}</label>
+            <input class="form-input" data-k="roadEN" value="${safe(v.roadEN)}"></div>
+          <div class="form-group"><label class="form-label">${t('addrProvince')} *</label>${provinceFieldEN}</div>
+        </div>
+        <div class="addr-2">
+          <div class="form-group"><label class="form-label">${t('addrDistrict')} *</label>${districtFieldEN}</div>
+          <div class="form-group"><label class="form-label">${t('addrSubDistrict')} *</label>${subFieldEN}</div>
+        </div>
+        <div class="form-group"><label class="form-label">${t('addrPostal')} *</label>${postalFieldEN}</div>
+      </div>
+    </div>
+  `;
+}
+
+// Cascade province → district → sub-district (auto-populate EN side)
+function onAddrChange(fieldKey, subKey, value) {
+  const c = state.changes[fieldKey];
+  if (!c) return;
+  c.values[subKey] = value;
+  // When country changes → reset all province/district/sub fields (since dropdown vs text differs)
+  if (subKey === 'country') {
+    c.values.provinceTH = ''; c.values.provinceEN = '';
+    c.values.districtTH = ''; c.values.districtEN = '';
+    c.values.subDistrictTH = ''; c.values.subDistrictEN = '';
+    c.values.postalTH = ''; c.values.postalEN = '';
+  }
+  // When province changes (Thailand only) → reset district + sub
+  if (subKey === 'provinceTH') {
+    c.values.districtTH = '';
+    c.values.districtEN = '';
+    c.values.subDistrictTH = '';
+    c.values.subDistrictEN = '';
+    c.values.provinceEN = TH_PROVINCES[value]?.en || '';
+  }
+  if (subKey === 'districtTH') {
+    c.values.subDistrictTH = '';
+    c.values.subDistrictEN = '';
+    const province = c.values.provinceTH;
+    c.values.districtEN = TH_PROVINCES[province]?.districts[value]?.en || '';
+  }
+  renderFields();
+  updateContinueBtn();
+}
+
+// Get list of fields that are enabled but have missing required values
+function getIncompleteFields() {
+  const incomplete = [];
+  FIELD_DEFS.forEach(f => {
+    const c = state.changes[f.key];
+    if (!c?.enabled) return;
+    const reqs = FIELD_REQUIREMENTS[f.key] || [];
+    const missing = reqs.filter(k => !(c.values[k] || '').toString().trim());
+    if (missing.length > 0) incomplete.push(f.th);
+  });
+  return incomplete;
+}
+
+function validateStep3() {
+  const errors = [];
+  const incomplete = getIncompleteFields();
+  if (incomplete.length > 0) {
+    // Translate field names if in EN mode
+    const translatedNames = incomplete.map(name => {
+      const f = FIELD_DEFS.find(fd => fd.th === name);
+      return f ? fieldName(f) : name;
+    });
+    errors.push(`${t('hintFillIncomplete')} ${translatedNames.join(', ')}`);
+  }
+  if (state.changes.email?.enabled) {
+    const v = state.changes.email.values;
+    if (v.emailNew && v.emailConfirm && v.emailNew !== v.emailConfirm) {
+      errors.push(tr('Email และ Confirm Email ไม่ตรงกัน','Email and Confirm Email do not match'));
+    }
+  }
+  if (state.changes.idCard?.enabled) {
+    const id = (state.changes.idCard.values.idNew || '').replace(/[^0-9]/g, '');
+    if (id.length !== 13) errors.push(tr('เลขบัตรประชาชนต้อง 13 หลัก','ID Card must be 13 digits'));
+  }
+  if (state.attachments.length === 0) {
+    errors.push(tr('แนบสำเนาบัตรประชาชน หรือ Passport อย่างน้อย 1 ไฟล์','Attach at least 1 ID Card or Passport copy'));
+  }
+  return errors;
+}
+
+function updateContinueBtn() {
+  const anyChecked = Object.values(state.changes).some(c => c.enabled);
+  const errors = validateStep3();
+  document.getElementById('btnToReview').disabled = !anyChecked || errors.length > 0;
+  // Update help text under button
+  const hint = document.getElementById('step3Hint');
+  if (hint) {
+    if (!anyChecked) {
+      hint.textContent = t('hintSelectAtLeast1');
+      hint.style.color = 'var(--cement)';
+    } else if (errors.length > 0) {
+      hint.textContent = errors[0];
+      hint.style.color = 'var(--err)';
+    } else {
+      hint.textContent = t('hintReady');
+      hint.style.color = 'var(--ok)';
+    }
+  }
+  // Highlight incomplete field cards
+  const incomplete = getIncompleteFields();
+  document.querySelectorAll('.field-card').forEach(card => {
+    card.classList.remove('incomplete');
+  });
+  FIELD_DEFS.forEach(f => {
+    const c = state.changes[f.key];
+    if (!c?.enabled) return;
+    const reqs = FIELD_REQUIREMENTS[f.key] || [];
+    const missing = reqs.filter(k => !(c.values[k] || '').toString().trim());
+    if (missing.length > 0) {
+      const card = document.getElementById(`row-${f.key}`);
+      if (card) card.classList.add('incomplete');
+    }
+  });
+}
+
+function setupFileUpload() {
+  const dz = document.getElementById('dropZone');
+  const fi = document.getElementById('fileInput');
+  // Single click handler — opens file dialog directly (no double-trigger from <label>)
+  dz.onclick = () => fi.click();
+  fi.onchange = (e) => {
+    handleFiles(Array.from(e.target.files || []));
+    fi.value = ''; // reset so user can re-pick same file
+  };
+  dz.ondragover = (e) => { e.preventDefault(); dz.style.borderColor = 'var(--brick)'; };
+  dz.ondragleave = () => dz.style.borderColor = '';
+  dz.ondrop = (e) => { e.preventDefault(); dz.style.borderColor = ''; handleFiles(Array.from(e.dataTransfer.files || [])); };
+  renderFileList();
+}
+
+function handleFiles(files) {
+  const MAX = 10*1024*1024;
+  for (const f of files) {
+    if (f.size > MAX) { toast(`${f.name} เกิน 10MB`, 'error'); continue; }
+    state.attachments.push({ name:f.name, size:f.size, file:f });
+  }
+  renderFileList();
+  updateContinueBtn();
+}
+
+function renderFileList() {
+  document.getElementById('fileList').innerHTML = state.attachments.map((f, i) => `
+    <div class="dz-file">
+      <span class="icon">📄</span>
+      <span class="fname">${f.name}</span>
+      <span class="fsize">${(f.size/1024/1024).toFixed(2)} MB</span>
+      <span class="ok">✓</span>
+      <span class="rm" onclick="removeFile(${i})">✕</span>
+    </div>
+  `).join('');
+}
+
+function removeFile(idx) { state.attachments.splice(idx, 1); renderFileList(); updateContinueBtn(); }
+
+function continueToReview() {
+  const errors = validateStep3();
+  if (errors.length > 0) {
+    toast(errors[0], 'error');
+    return;
+  }
+  goto('4');
+  setTimeout(() => loadStep4(), 50);
+}
+
+// ============================================================
+// Screen 4 — Review & Sign
+// ============================================================
+function loadStep4() {
+  // Always create one REQ per unit — POS เก็บแยกตามโครงการ/ยูนิตเสมอ ไม่ว่าจะเป็น Scenario A หรือ B
+  state.reqIds = state.selectedUnitIds.map((_, i) => `REQ-2604-${String.fromCharCode(65+i)}`);
+
+  const units = state.units.filter(u => state.selectedUnitIds.includes(u.id));
+  document.getElementById('docPageNum').textContent = `เอกสาร ${units.length} ฉบับ (เลื่อนลงดูทุกฉบับ)`;
+  document.getElementById('docName').textContent = `CIM_${state.reqIds.join('_')}.pdf`;
+
+  // Render all docs stacked vertically — 1 doc per unit
+  const stack = document.getElementById('docStack');
+  stack.innerHTML = units.map((u, i) => renderDocPage([u], state.reqIds[i])).join('');
+
+  initSigCanvas();
+  document.getElementById('conf1').checked = false;
+  document.getElementById('conf2').checked = false;
+  state.signature = null;
+  updateSubmitBtn();
+}
+
+function renderDocPage(units, reqId) {
+  const c = state.customer;
+  const ch = state.changes;
+  const en = (k) => ch[k]?.enabled;
+  const v = (k) => ch[k]?.values || {};
+  const now = new Date();
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const thDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
+  const sigImg = state.signature ? `<img src="${state.signature}" alt="signature">` : '';
+  const sigDate = state.signature
+    ? `${String(now.getDate()).padStart(2,'0')} / ${String(now.getMonth()+1).padStart(2,'0')} / ${now.getFullYear()+543}`
+    : '— / — / —';
+
+  const safe = (s) => (s == null || s === undefined) ? '' : String(s);
+  const customerTH = en('name') ? `${safe(v('name').titleTH)} ${safe(v('name').firstTH)} ${safe(v('name').lastTH)}`.trim().replace(/\s+/g,' ') : c.nameTH;
+  const customerEN = en('name') ? `${safe(v('name').titleEN)} ${safe(v('name').firstEN)} ${safe(v('name').lastEN)}`.trim().replace(/\s+/g,' ') : c.nameEN;
+
+  // Address formatters (use module-level helpers)
+  const fmtAddrTH = (a) => formatAddrTH(a) || '—';
+  const fmtAddrEN = (a) => formatAddrEN(a) || '—';
+
+  const unitsLine = units.map(u => `${u.name} ${u.code}`).join(' · ');
+  const projectLine = units.map(u => u.name).join(' · ');
+  const unitCodeLine = units.map(u => u.code).join(' · ');
+
+  // Date split (TH year)
+  const dd = String(now.getDate()).padStart(2,'0');
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const yyyy = now.getFullYear() + 543;
+
+  // Form field row matching original PDF layout
+  const formRow = (enabled, thLabel, enLabel, valueHtml, isMulti=false) => `
+    <div class="pdf-fld ${isMulti?'multi':''}">
+      <div class="pdf-cb">${enabled ? '☑' : '☐'}</div>
+      <div class="pdf-fld-label"><b>${thLabel}</b><small>${enLabel}</small></div>
+      <div class="pdf-fld-value">${enabled ? valueHtml : '<div class="dotline"></div>'}</div>
+    </div>
+  `;
+
+  // Phone special row with sub-checkboxes
+  const phoneRow = () => {
+    const enabled = ch.phone?.enabled;
+    const isAdd = enabled && v('phone').subType === 'add';
+    const isChange = enabled && v('phone').subType !== 'add';
+    const phoneNew = safe(v('phone').phoneNew);
+    return `
+    <div class="pdf-fld multi">
+      <div class="pdf-cb">${enabled?'☑':'☐'}</div>
+      <div class="pdf-fld-label"><b>เบอร์โทรศัพท์</b><small>Telephone Numbers</small></div>
+      <div class="pdf-fld-value">
+        <div class="pdf-sub">
+          <div class="pdf-sub-cb">${isAdd?'☑':'☐'}</div>
+          <span style="min-width:140px">เพิ่มหมายเลข <small>/ Add Numbers</small></span>
+          <div class="dotline">${isAdd?phoneNew:''}</div>
+        </div>
+        <div class="pdf-sub">
+          <div class="pdf-sub-cb">${isChange?'☑':'☐'}</div>
+          <span style="min-width:140px">เปลี่ยนหมายเลข <small>/ Change Numbers</small></span>
+          <div class="dotline">${isChange?phoneNew:''}</div>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  // Receipt special row
+  const receiptRow = () => {
+    const enabled = ch.receipt?.enabled;
+    const isE = enabled; // we only allow paper → e-receipt
+    return `
+    <div class="pdf-fld multi">
+      <div class="pdf-cb">${enabled?'☑':'☐'}</div>
+      <div class="pdf-fld-label"><b>รูปแบบใบเสร็จรับเงิน</b><small>Receipt Type</small></div>
+      <div class="pdf-fld-value">
+        <div class="pdf-sub">
+          <div class="pdf-sub-cb">${isE?'☑':'☐'}</div>
+          <span>แบบอิเล็กทรอนิกส์ <small>/ E-Receipt</small></span>
+          <div class="pdf-sub-cb" style="margin-left:32px">☐</div>
+          <span>แบบกระดาษ <small>/ Paper-Receipt</small></span>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  // Passport row (only for foreign customer)
+  const passportEnabled = ch.passport?.enabled;
+  const passportRow = c.type === 'foreign' ? `
+    <div class="pdf-fld multi">
+      <div class="pdf-cb">${passportEnabled?'☑':'☐'}</div>
+      <div class="pdf-fld-label"><b>เลขที่ Passport</b><small>Passport Number</small></div>
+      <div class="pdf-fld-value">
+        <div class="pdf-sub" style="gap:10px">
+          <span style="min-width:60px">เลข Passport:</span>
+          <div class="dotline">${passportEnabled ? safe(v('passport').passportNew) : ''}</div>
+        </div>
+        <div class="pdf-sub" style="gap:10px">
+          <span style="min-width:60px">ประเทศ Country:</span>
+          <div class="dotline">${passportEnabled ? safe(v('passport').passportCountry) : ''}</div>
+        </div>
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    <div class="doc-page pdf-form">
+      <div class="doc-pattern"><span></span><span></span><span></span><span></span><span></span></div>
+      <h2 style="font-size:18px">แบบฟอร์มแจ้งเปลี่ยนแปลงข้อมูลส่วนตัว</h2>
+      <h3 style="font-size:14px">Personal Information Change Form</h3>
+
+      <div class="pdf-meta-row">
+        <div></div>
+        <div>วันที่ <small>/ Date</small> <span class="dot-fill">${thDate}</span></div>
+      </div>
+
+      <div class="pdf-info-row">
+        <div class="pdf-lbl">ข้าพเจ้า <small>/ Name - Surname</small></div>
+        <div class="dotline brick">${customerTH || customerEN}</div>
+      </div>
+      <div class="pdf-info-row" style="margin-top:8px">
+        <div class="pdf-lbl">ห้องชุดเลขที่ หรือแปลงที่ <small>/ Unit No or Plot No</small></div>
+        <div class="dotline" style="flex:1">${unitCodeLine}</div>
+        <div class="pdf-lbl" style="min-width:80px">โครงการ <small>/ Project</small></div>
+        <div class="dotline" style="flex:1">${projectLine}</div>
+      </div>
+
+      <div style="margin:18px 0 12px;font-size:11px;font-weight:500">มีความประสงค์ขอเปลี่ยนแปลงข้อมูลส่วนตัว ดังนี้ <small style="color:var(--cement)">/ I would like to change some information as follow:</small></div>
+
+      ${formRow(ch.name?.enabled, 'ชื่อ – นามสกุล', 'Name – Surname',
+        `<div class="dotline">${customerTH} ${customerEN ? `(${customerEN})` : ''}</div>`)}
+      ${passportRow}
+      ${formRow(ch.idCard?.enabled, 'เลขบัตรประชาชน', 'ID Card Numbers',
+        `<div class="dotline">${safe(v('idCard').idNew)}</div>`)}
+      ${formRow(ch.email?.enabled, 'อีเมล', 'Email',
+        `<div class="dotline">${safe(v('email').emailNew)}</div>`)}
+      ${phoneRow()}
+      ${formRow(ch.addrId?.enabled, 'ที่อยู่ตามบัตรประชาชน', 'Address',
+        `<div class="dotline">${fmtAddrTH(v('addrId'))}</div>
+         <div class="dotline">${fmtAddrEN(v('addrId'))}</div>`, true)}
+      ${formRow(ch.addrMail?.enabled, 'ที่อยู่จัดส่งเอกสาร', 'Mailing Address',
+        `<div class="dotline">${fmtAddrTH(v('addrMail'))}</div>
+         <div class="dotline">${fmtAddrEN(v('addrMail'))}</div>`, true)}
+      ${receiptRow()}
+
+      <div class="pdf-remark">
+        <b>หมายเหตุ</b> กรณีเปลี่ยนแปลงชื่อ-นามสกุล และ/หรือ ที่อยู่ตามบัตรประชาชน กรุณาแนบสำเนาใบเปลี่ยนชื่อ-สกุล และ/หรือ สำเนาบัตรประชาชนมาด้วยทุกครั้ง<br>
+        <small><b>Remark:</b> In case of changing first name or surname and/or address on ID card, please enclose certified copy of evidence of your name change and/or ID card.</small>
+      </div>
+
+      <!-- PDPA Section (page 2 in original PDF, but combined here) -->
+      <div class="pdf-pdpa-section">
+        <div style="font-size:11px;line-height:1.6">
+          ข้อมูลส่วนบุคคลที่ท่านให้แก่บริษัท <b>โนเบิล ดีเวลลอปเมนท์ จำกัด (มหาชน)</b> ภายใต้เอกสารนี้ จะได้รับการประมวลผล เพื่อประโยชน์ในการดำเนินการของบริษัทฯ เพื่อให้กิจการหรือวัตถุประสงค์ที่ระบุไว้ในแบบฟอร์มนี้สำเร็จลุล่วงไป โดยท่านสามารถศึกษานโยบายคุ้มครองข้อมูลส่วนบุคคลได้ที่ <span style="color:var(--brick)">https://www.noblehome.com/th/policy</span>
+        </div>
+        <div style="font-size:10px;line-height:1.5;color:var(--cement);margin-top:6px">
+          Your personal data which is provided for <b>Noble Development PCL</b> in this form shall be processed for the benefits of our operation, for the achievement of our business or objectives as set out herein. In this regard, please find the Customer Privacy Notice at <span style="color:var(--brick)">https://www.noblehome.com/th/policy</span>
+        </div>
+        <div class="pdf-fld" style="margin-top:14px;align-items:flex-start">
+          <div class="pdf-cb">☑</div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:500">ข้าพเจ้ายินยอมให้เก็บ รวบรวม ใช้ ข้อมูลส่วนบุคคลของข้าพเจ้าที่ได้ส่งมอบให้เพื่อการดำเนินธุรกิจของบริษัทฯ</div>
+            <small style="color:var(--cement)">I hereby consent to keep, collect, use my personal data provided for our business operations.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-sign">
+        <div class="doc-sign-box">
+          <div class="doc-sign-line">${sigImg}</div>
+          <div class="doc-sign-lbl">ลงชื่อ <small>/ Signed</small></div>
+          <div class="doc-sign-name">( ${customerTH || customerEN} )</div>
+        </div>
+        <div class="doc-sign-box">
+          <div style="display:flex;gap:6px;align-items:flex-end;justify-content:center;height:42px">
+            <span style="border-bottom:1px solid #000;min-width:30px;text-align:center;font-size:13px;font-weight:600">${state.signature?dd:''}</span>
+            <span>/</span>
+            <span style="border-bottom:1px solid #000;min-width:30px;text-align:center;font-size:13px;font-weight:600">${state.signature?mm:''}</span>
+            <span>/</span>
+            <span style="border-bottom:1px solid #000;min-width:50px;text-align:center;font-size:13px;font-weight:600">${state.signature?yyyy:''}</span>
+          </div>
+          <div class="doc-sign-lbl">วันที่ / เดือน / ปี <small>(Date / Month / Year)</small></div>
+        </div>
+      </div>
+
+      <div class="doc-footer-pat"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+  `;
+}
+
+let sigCanvas, sigCtx, sigDrawing=false, sigLastX=0, sigLastY=0, sigHasDrawn=false;
+
+function initSigCanvas() {
+  sigCanvas = document.getElementById('sigCanvas');
+  sigCtx = sigCanvas.getContext('2d');
+  const setup = () => {
+    const r = sigCanvas.getBoundingClientRect();
+    if (r.width === 0) return requestAnimationFrame(setup);
+    const dpr = window.devicePixelRatio || 1;
+    sigCanvas.width = r.width * dpr;
+    sigCanvas.height = r.height * dpr;
+    sigCtx.setTransform(1,0,0,1,0,0);
+    sigCtx.scale(dpr, dpr);
+    sigCtx.lineWidth = 2.2; sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round';
+    sigCtx.strokeStyle = '#000';
+    sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+    sigHasDrawn = false;
+    document.getElementById('sigHint').classList.remove('hidden');
+  };
+  requestAnimationFrame(setup);
+
+  const getC = (e) => {
+    const r = sigCanvas.getBoundingClientRect();
+    const t = e.touches?.[0] || e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  };
+  const start = (e) => {
+    e.preventDefault();
+    sigDrawing = true;
+    const c = getC(e);
+    sigLastX = c.x; sigLastY = c.y;
+    sigCtx.beginPath();
+    sigCtx.arc(c.x, c.y, 1.2, 0, Math.PI*2);
+    sigCtx.fill();
+    if (!sigHasDrawn) {
+      sigHasDrawn = true;
+      document.getElementById('sigHint').classList.add('hidden');
+    }
+  };
+  const move = (e) => {
+    if (!sigDrawing) return;
+    e.preventDefault();
+    const c = getC(e);
+    sigCtx.beginPath();
+    sigCtx.moveTo(sigLastX, sigLastY);
+    sigCtx.lineTo(c.x, c.y);
+    sigCtx.stroke();
+    sigLastX = c.x; sigLastY = c.y;
+  };
+  const end = () => sigDrawing = false;
+
+  sigCanvas.onmousedown = start;
+  sigCanvas.onmousemove = move;
+  sigCanvas.onmouseup = end;
+  sigCanvas.onmouseleave = end;
+  sigCanvas.addEventListener('touchstart', start, {passive:false});
+  sigCanvas.addEventListener('touchmove', move, {passive:false});
+  sigCanvas.addEventListener('touchend', end);
+}
+
+function clearSignature() {
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  sigHasDrawn = false;
+  document.getElementById('sigHint').classList.remove('hidden');
+  state.signature = null;
+  loadStep4_rerender();
+  updateSubmitBtn();
+}
+
+function loadStep4_rerender() {
+  // Re-render docs with new signature — 1 doc per unit always
+  const units = state.units.filter(u => state.selectedUnitIds.includes(u.id));
+  const stack = document.getElementById('docStack');
+  stack.innerHTML = units.map((u, i) => renderDocPage([u], state.reqIds[i])).join('');
+}
+
+function applySignature() {
+  if (!sigHasDrawn) { toast('กรุณาวาดลายเซ็นก่อน', 'error'); return; }
+  state.signature = sigCanvas.toDataURL('image/png');
+  loadStep4_rerender();
+  updateSubmitBtn();
+  toast('✓ ใช้ลายเซ็นแล้ว', 'success');
+}
+
+function updateSubmitBtn() {
+  const ok = state.signature
+    && document.getElementById('conf1')?.checked
+    && document.getElementById('conf2')?.checked;
+  document.getElementById('btnSubmit').disabled = !ok;
+}
+
+async function downloadDraftPDF(includeAttachments = true) {
+  showLoading('กำลังสร้าง PDF + รวมเอกสารแนบ...');
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+
+    // 1. เพิ่มเอกสารคำขอที่เซ็นแล้ว (1 หน้า/ห้อง)
+    const pages = document.querySelectorAll('#docStack .doc-page');
+    for (let i = 0; i < pages.length; i++) {
+      const cv = await html2canvas(pages[i], { scale:2, backgroundColor:'#fff' });
+      const w = 190, h = (cv.height * w) / cv.width;
+      if (i > 0) pdf.addPage();
+      pdf.addImage(cv.toDataURL('image/png'), 'PNG', 10, 10, w, h);
+    }
+
+    // 2. แทรกหน้าคั่น "Attachments" ถ้ามีไฟล์แนบ
+    if (includeAttachments && state.attachments.length > 0) {
+      pdf.addPage();
+      pdf.setFontSize(20);
+      pdf.text('Supporting Documents', 105, 100, { align:'center' });
+      pdf.setFontSize(12);
+      pdf.text(`${state.attachments.length} attached file(s)`, 105, 115, { align:'center' });
+      pdf.setFontSize(10);
+      let y = 140;
+      state.attachments.forEach((f, i) => {
+        pdf.text(`${i+1}. ${f.name}  (${(f.size/1024/1024).toFixed(2)} MB)`, 30, y);
+        y += 8;
+      });
+
+      // 3. แนบไฟล์แต่ละไฟล์
+      const PDFLib = window.PDFLib;
+      let mergedPdfDoc = null;
+      // Convert jsPDF output → pdf-lib so we can merge image attachments + pdf attachments
+      try {
+        if (PDFLib) {
+          const mainPdfBytes = pdf.output('arraybuffer');
+          mergedPdfDoc = await PDFLib.PDFDocument.load(mainPdfBytes);
+
+          for (const att of state.attachments) {
+            const ext = att.name.split('.').pop().toLowerCase();
+            const bytes = await att.file.arrayBuffer();
+
+            if (ext === 'pdf') {
+              try {
+                const attPdf = await PDFLib.PDFDocument.load(bytes);
+                const copiedPages = await mergedPdfDoc.copyPages(attPdf, attPdf.getPageIndices());
+                copiedPages.forEach(p => mergedPdfDoc.addPage(p));
+              } catch (err) {
+                console.warn('Could not merge PDF', att.name, err);
+              }
+            } else if (['jpg','jpeg','png'].includes(ext)) {
+              try {
+                let img;
+                if (ext === 'png') img = await mergedPdfDoc.embedPng(bytes);
+                else img = await mergedPdfDoc.embedJpg(bytes);
+                const page = mergedPdfDoc.addPage([595, 842]); // A4 in pt
+                const dims = img.scale(Math.min(575/img.width, 822/img.height));
+                page.drawImage(img, {
+                  x: (595-dims.width)/2,
+                  y: (842-dims.height)/2,
+                  width: dims.width,
+                  height: dims.height
+                });
+              } catch (err) {
+                console.warn('Could not embed image', att.name, err);
+              }
+            }
+          }
+
+          const mergedBytes = await mergedPdfDoc.save();
+          const blob = new Blob([mergedBytes], { type:'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `CIM_${new Date().toISOString().slice(0,10)}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+          toast(`✓ Download PDF สำเร็จ · รวม ${pages.length} หน้าคำขอ + ${state.attachments.length} ไฟล์แนบ`, 'success');
+          return;
+        }
+      } catch (err) {
+        console.error('PDF merge failed, falling back', err);
+      }
+    }
+
+    // Fallback: just the form pages
+    pdf.save(`CIM_${new Date().toISOString().slice(0,10)}.pdf`);
+    toast('✓ Download PDF สำเร็จ', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Error: ' + e.message, 'error');
+  } finally { hideLoading(); }
+}
+
+function submitRequest() {
+  if (document.getElementById('btnSubmit').disabled) return;
+  showLoading('กำลังส่งคำขอ...');
+  setTimeout(() => {
+    hideLoading();
+    loadStep5();
+    goto('5');
+    toast('🎉 ส่งคำขอสำเร็จ!', 'success');
+  }, 1200);
+}
+
+// ============================================================
+// Screen 5 — Success
+// ============================================================
+function loadStep5() {
+  // Render REQ pills — 1 pill per unit (POS เก็บแยกตามยูนิตเสมอ)
+  const units = state.units.filter(u => state.selectedUnitIds.includes(u.id));
+  const pills = document.getElementById('reqPills');
+  pills.innerHTML = units.map((u, i) => `
+    <div class="req-pill" onclick="downloadOne('${u.id}')">
+      <span>${u.name} – ${u.code}</span>
+      <span class="dl-icon">⬇</span>
+    </div>
+  `).join('');
+}
+
+async function downloadOne(unitId) {
+  toast('⬇ กำลังโหลดเอกสารของห้องนี้...', 'info');
+  await downloadDraftPDF();
+}
+
+async function downloadAll() {
+  await downloadDraftPDF();
+}
+
+function goHome() {
+  if (confirm('ออกจากระบบ? กลับไปหน้าแรก noblehome.com')) {
+    // Reset
+    state.screen = '1a';
+    state.customer = null;
+    state.units = [];
+    state.selectedUnitIds = [];
+    state.changes = {};
+    state.attachments = [];
+    state.signature = null;
+    state.reqIds = [];
+    document.getElementById('idInput').value = MOCK_DB[state.mode].customer.idCard;
+    document.getElementById('dobInput').value = MOCK_DB[state.mode].customer.dob;
+    goto('1a');
+  }
+}
+
+// ============================================================
+// Init
+// ============================================================
+applyTranslations();
+goto('1a');
+console.log('%c👋 Welcome to Customer Information Modification — Prototype V2', 'color:#D26132;font-weight:bold;font-size:16px');
+console.log('Demo data: ID = 1102001943802 · DOB = 14/05/1990');
+console.log('OTP จะแสดงที่นี่หลังกด Send OTP');
+</script>
+
+</body>
+</html>
