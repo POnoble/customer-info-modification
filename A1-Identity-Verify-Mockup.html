@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>A1 · Identity Verification — PI Change (Self-Service)</title>
+<meta name="viewport" content="width=1440" />
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#000;
+    --white:#fff;
+    --cement:#6E767A;
+    --brick:#D26132;
+    --sand:#DDC69A;
+    --steel:#B4BBBF;
+    --line:#E5E7EA;
+    --bg:#F5F5F5;
+    --ok:#1F8B4C;
+    --err:#C0392B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Kanit',system-ui,sans-serif;background:#EEF0F2;color:#000;font-weight:300;line-height:1.5}
+  /* Browser chrome (mock) */
+  .browser{width:1440px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.18)}
+  .chrome{height:32px;background:#F0F0F0;display:flex;align-items:center;padding:0 12px;gap:8px;font-size:11px;color:var(--cement)}
+  .chrome .dot{width:10px;height:10px;border-radius:50%;background:#FF5F56}
+  .chrome .dot+.dot{background:#FFBD2E}
+  .chrome .dot+.dot+.dot{background:#27C93F}
+  .chrome .url{flex:1;text-align:center;color:var(--cement)}
+  /* Header */
+  header.site{height:70px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px}
+  .logo{border:1.5px solid #000;padding:4px 12px;font-weight:700;font-size:16px;letter-spacing:.5px}
+  .top-meta{display:flex;align-items:center;gap:24px;color:var(--cement);font-size:13px}
+  .top-meta .lang{font-weight:500;color:#000}
+  .top-meta .helper{color:var(--brick);font-weight:500}
+  /* Pattern strip */
+  .pattern{display:flex;height:6px}
+  .pattern span{flex:1}
+  .pattern span:nth-child(1){background:var(--brick)}
+  .pattern span:nth-child(2){background:var(--sand)}
+  .pattern span:nth-child(3){background:var(--cement)}
+  .pattern span:nth-child(4){background:var(--steel)}
+  /* Stepper */
+  .stepper{background:var(--bg);height:56px;display:flex;align-items:center;padding:0 64px;gap:32px;font-size:11px;color:var(--cement)}
+  .stepper .step{font-weight:700;letter-spacing:.1em}
+  .stepper .bars{display:flex;gap:20px;flex:1;justify-content:center}
+  .stepper .bar{width:160px;height:4px;background:#E5E7EA;position:relative;border-radius:2px}
+  .stepper .bar.done{background:var(--brick)}
+  .stepper .bar.now{background:var(--brick)}
+  .stepper .bar.now::after{content:"";position:absolute;right:0;top:0;height:4px;width:60%;background:#E5E7EA;border-radius:2px}
+  .stepper .labels{font-weight:500}
+  /* Page body */
+  main{padding:48px 64px 64px;background:#fff}
+  h1{font-size:32px;font-weight:900;letter-spacing:-.5px}
+  .sub{color:var(--cement);font-size:14px;margin-top:6px}
+  /* Two-col layout */
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:32px;margin-top:32px}
+  .card{background:#fff;border:1px solid var(--line);padding:32px 40px}
+  .card h2{font-size:18px;font-weight:700;display:flex;align-items:center;gap:12px}
+  .badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#000;color:#fff;font-size:12px;font-weight:700}
+  .divider{height:1px;background:var(--line);margin:24px 0}
+  .field-label{font-size:12px;font-weight:700;color:var(--cement);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+  .field-label .hint{text-transform:none;letter-spacing:0;color:var(--cement);font-weight:400;font-size:11px}
+  .input,.select{width:100%;height:48px;padding:0 16px;border:1px solid var(--steel);background:#fff;font:inherit;font-size:15px}
+  .input:focus,.select:focus{outline:2px solid var(--brick);outline-offset:-2px;border-color:var(--brick)}
+  .input.has-icon{padding-left:48px}
+  .field{margin-bottom:24px;position:relative}
+  .field .icon{position:absolute;left:14px;top:38px;color:var(--cement);font-size:18px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .seg{display:flex;border:1px solid var(--steel);width:fit-content;margin-bottom:16px}
+  .seg button{appearance:none;background:#fff;border:0;padding:10px 18px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;color:#000;letter-spacing:.04em}
+  .seg button.active{background:#000;color:#fff}
+  .help-line{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--cement);margin-top:6px}
+  /* Buttons */
+  .btn-row{display:flex;justify-content:space-between;margin-top:32px}
+  .btn{height:48px;padding:0 32px;font:inherit;font-weight:700;font-size:13px;letter-spacing:.08em;border:0;cursor:pointer;text-transform:uppercase}
+  .btn.primary{background:var(--brick);color:#fff}
+  .btn.dark{background:#000;color:#fff}
+  .btn.outline{background:#fff;border:1.5px solid #000}
+  .btn:disabled{background:#E5E7EA;color:#9aa1a6;cursor:not-allowed}
+  /* Side card */
+  aside .info{background:var(--bg);padding:24px;border-left:4px solid var(--brick);font-size:13px;color:#333;line-height:1.6}
+  aside .info b{color:#000;display:block;margin-bottom:6px;font-weight:700}
+  aside .small{font-size:12px;color:var(--cement);margin-top:24px;line-height:1.6}
+  /* OTP boxes */
+  .otp{display:flex;gap:12px;margin:8px 0 8px}
+  .otp input{width:56px;height:64px;text-align:center;border:1.5px solid var(--steel);font:inherit;font-size:24px;font-weight:700;background:#fff}
+  .otp input:focus{border-color:var(--brick);outline:2px solid var(--brick);outline-offset:-2px}
+  .otp-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--cement);margin-top:8px}
+  .otp-meta .resend{color:var(--brick);font-weight:500;cursor:pointer}
+  .countdown{font-variant-numeric:tabular-nums}
+  /* States */
+  .state-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .state-tag.ok{background:#E6F4EA;color:var(--ok)}
+  .state-tag.warn{background:#FDE8E4;color:var(--err)}
+  .state-tag.live{background:#000;color:#fff}
+  /* Footer between mockups */
+  .frame-label{background:#000;color:#fff;padding:14px 32px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .frame-label .url{font-weight:400;letter-spacing:.04em;color:#B4BBBF}
+  /* Verified profile card */
+  .profile{background:linear-gradient(180deg,#FFF 0,#FAFBFB 100%);border:1px solid var(--line);padding:24px;display:flex;gap:20px;align-items:center}
+  .avatar{width:56px;height:56px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;flex-shrink:0}
+  .profile .name{font-weight:700;font-size:18px}
+  .profile .meta{color:var(--cement);font-size:13px;margin-top:4px}
+  .unit-card{border:1px solid var(--line);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:.15s}
+  .unit-card+.unit-card{margin-top:12px}
+  .unit-card:hover{border-color:#000}
+  .unit-card.selected{border:2px solid var(--brick);padding:17px 19px;background:#FFF8F4}
+  .unit-card .left .pj{font-weight:700;font-size:15px}
+  .unit-card .left .un{color:var(--cement);font-size:13px;margin-top:2px}
+  .unit-card .right{display:flex;align-items:center;gap:12px}
+  .unit-card .pill{font-size:11px;background:var(--bg);padding:4px 10px;color:var(--cement);font-weight:500}
+  .unit-card .radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--steel);position:relative}
+  .unit-card.selected .radio{border-color:var(--brick)}
+  .unit-card.selected .radio::after{content:"";position:absolute;inset:3px;background:var(--brick);border-radius:50%}
+  /* Section header for second screen */
+  .section-cap{background:#000;color:#fff;padding:18px 24px;font-size:14px;font-weight:700;letter-spacing:.06em}
+  .toast{background:#FEF6E7;border-left:4px solid #E0A800;padding:12px 16px;font-size:13px;color:#7A4D00;margin-top:12px;display:flex;gap:10px;align-items:flex-start}
+</style>
+</head>
+<body>
+
+<!-- ====================== STATE 1 — IDENTITY ENTRY ====================== -->
+<div class="frame-label">
+  STATE 1 · ลูกค้ากดลิงค์ → กรอกบัตร + เบอร์ → ขอ OTP
+  <span class="url">noblehome.com/cirm/pi-change/verify?token=…</span>
+</div>
+<div class="browser">
+  <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">noblehome.com/cirm/pi-change/verify</span></div>
+  <header class="site">
+    <div class="logo">noble</div>
+    <div class="top-meta">
+      <span class="lang"><b>TH</b> | EN</span>
+      <span>ต้องการความช่วยเหลือ? <span class="helper">Contact Center 02-251-9955</span></span>
+    </div>
+  </header>
+  <div class="pattern"><span></span><span></span><span></span><span></span></div>
+  <div class="stepper">
+    <div class="step">ขั้นตอนที่ 1 จาก 4</div>
+    <div class="bars">
+      <div class="bar now"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <div class="labels">ยืนยันตัวตน · กรอกข้อมูล · ตรวจสอบ · ส่งคำขอ</div>
+  </div>
+
+  <main>
+    <h1>ยืนยันตัวตนของท่าน</h1>
+    <p class="sub">เพื่อความปลอดภัย ระบบจะตรวจสอบข้อมูลของท่านกับฐานข้อมูลลูกค้า Noble ก่อนเริ่มกรอกแบบฟอร์ม</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2><span class="badge">1</span>ตรวจสอบข้อมูลลูกค้า</h2>
+        <div class="divider"></div>
+
+        <div class="field-label">ประเภทเอกสารระบุตัวตน</div>
+        <div class="seg" role="tablist">
+          <button class="active" type="button">บัตรประชาชน · Thai ID</button>
+          <button type="button">หนังสือเดินทาง · Passport</button>
+        </div>
+
+        <div class="field">
+          <div class="field-label">เลขบัตรประจำตัวประชาชน *<span class="hint">13 หลัก ไม่ต้องเว้นวรรค</span></div>
+          <input class="input has-icon" placeholder="X-XXXX-XXXXX-XX-X" value="3-1002-05523-40-8" />
+          <span class="icon">▭</span>
+        </div>
+
+        <div class="field">
+          <div class="field-label">เบอร์โทรศัพท์มือถือ *<span class="hint">เบอร์ที่ลงทะเบียนไว้กับ Noble</span></div>
+          <input class="input has-icon" placeholder="08X-XXX-XXXX" value="081-234-5678" />
+          <span class="icon">☎</span>
+          <p class="help-line">ⓘ เราจะส่งรหัส OTP ไปยังเบอร์ที่ตรงกับข้อมูลในระบบ Customer Management เท่านั้น</p>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn outline" type="button">← ยกเลิก</button>
+          <button class="btn primary" type="button">ส่งรหัส OTP →</button>
+        </div>
+      </section>
+
+      <aside>
+        <div class="info">
+          <b>ทำไมต้องยืนยันตัวตน?</b>
+          ระบบนี้ใช้สำหรับ <u>เจ้าของห้อง / ผู้เช่า</u> ที่มีประวัติกับ Noble เพื่อป้องกันการเปลี่ยนแปลงข้อมูลโดยบุคคลที่ไม่ได้รับอนุญาต
+        </div>
+        <p class="small">
+          <b style="color:#000">ไม่ใช่ลูกค้าของ Noble?</b><br/>
+          หากท่านยังไม่เคยลงทะเบียนเป็นเจ้าของห้องหรือผู้เช่า กรุณาติดต่อฝ่ายขายของโครงการ
+          เพื่อให้พนักงานดำเนินการแทนผ่านระบบ POS
+          <br/><br/>
+          <b style="color:#000">ลิงค์นี้ปลอดภัย</b><br/>
+          ลิงค์มีอายุ 24 ชั่วโมง และผูกกับตัวตนของท่าน · ระบบเข้ารหัสด้วย TLS 1.3
+        </p>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- ====================== STATE 2 — OTP CHALLENGE ====================== -->
+<div class="frame-label">
+  STATE 2 · ระบบ Match กับ CRM แล้ว → ส่ง OTP 6 หลัก ไปยังเบอร์ที่ลงทะเบียน
+  <span class="url">noblehome.com/cirm/pi-change/verify/otp</span>
+</div>
+<div class="browser">
+  <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">noblehome.com/cirm/pi-change/verify/otp</span></div>
+  <header class="site">
+    <div class="logo">noble</div>
+    <div class="top-meta">
+      <span class="lang"><b>TH</b> | EN</span>
+      <span>ต้องการความช่วยเหลือ? <span class="helper">Contact Center 02-251-9955</span></span>
+    </div>
+  </header>
+  <div class="pattern"><span></span><span></span><span></span><span></span></div>
+  <div class="stepper">
+    <div class="step">ขั้นตอนที่ 1 จาก 4</div>
+    <div class="bars">
+      <div class="bar now"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <div class="labels">ยืนยันตัวตน · กรอกข้อมูล · ตรวจสอบ · ส่งคำขอ</div>
+  </div>
+
+  <main>
+    <h1>กรอกรหัส OTP</h1>
+    <p class="sub">เราได้ส่งรหัส 6 หลักไปยังเบอร์ <b style="color:#000">081-XXX-5678</b> · กรุณากรอกภายใน 5 นาที</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2><span class="badge">2</span>ยืนยันรหัส OTP</h2>
+        <div class="divider"></div>
+
+        <div class="field-label">รหัสอ้างอิง (Ref): <b style="color:#000;font-family:monospace">N4F2-9X</b><span class="hint">ตรวจสอบว่ารหัสอ้างอิงตรงกับ SMS</span></div>
+        <div class="otp">
+          <input value="4" maxlength="1" />
+          <input value="2" maxlength="1" />
+          <input value="9" maxlength="1" />
+          <input value="" maxlength="1" />
+          <input value="" maxlength="1" />
+          <input value="" maxlength="1" />
+        </div>
+        <div class="otp-meta">
+          <span>เหลือเวลาอีก <span class="countdown">04:38</span></span>
+          <span>ขอรหัสใหม่ได้ใน <span class="resend">00:42</span></span>
+        </div>
+
+        <div class="toast">⚠️ กรอกผิดติดต่อกัน 5 ครั้ง ระบบจะล็อกการขอเปลี่ยนข้อมูลชั่วคราว 30 นาที</div>
+
+        <div class="btn-row">
+          <button class="btn outline" type="button">← เปลี่ยนเบอร์</button>
+          <button class="btn primary" disabled>ยืนยันตัวตน →</button>
+        </div>
+      </section>
+
+      <aside>
+        <div class="info">
+          <b>ไม่ได้รับ SMS?</b>
+          1. ตรวจสอบว่าเบอร์ที่กรอกตรงกับเบอร์ที่ท่านลงทะเบียนไว้ <br/>
+          2. รอประมาณ 30 วินาที แล้วกด "ขอรหัสใหม่"<br/>
+          3. หากยังไม่ได้รับ ติดต่อฝ่ายขายโครงการเพื่อให้พนักงานทำเอกสารผ่านระบบให้
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- ====================== STATE 3 — UNIT SELECTION (Verified) ====================== -->
+<div class="frame-label">
+  STATE 3 · ยืนยันสำเร็จ → ระบบโหลดห้องของลูกค้าจาก CRM (Multi-unit support)
+  <span class="url">noblehome.com/cirm/pi-change/select-unit</span>
+</div>
+<div class="browser">
+  <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">noblehome.com/cirm/pi-change/select-unit</span></div>
+  <header class="site">
+    <div class="logo">noble</div>
+    <div class="top-meta">
+      <span class="state-tag ok">● ยืนยันตัวตนแล้ว</span>
+      <span class="lang"><b>TH</b> | EN</span>
+    </div>
+  </header>
+  <div class="pattern"><span></span><span></span><span></span><span></span></div>
+  <div class="stepper">
+    <div class="step">ขั้นตอนที่ 1 จาก 4</div>
+    <div class="bars">
+      <div class="bar done"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <div class="labels">ยืนยันตัวตน ✓ · กรอกข้อมูล · ตรวจสอบ · ส่งคำขอ</div>
+  </div>
+
+  <main>
+    <h1>เลือกห้องที่ต้องการเปลี่ยนข้อมูล</h1>
+    <p class="sub">ระบบพบ 2 ห้องที่ผูกกับเลขบัตรของท่าน · กรุณาเลือก 1 ห้องเพื่อดำเนินการต่อ</p>
+
+    <div class="grid">
+      <section class="card">
+        <div class="profile">
+          <div class="avatar">ส</div>
+          <div>
+            <div class="name">น.ส. สาวิตรี อ่อนเลิศ</div>
+            <div class="meta">Customer ID: <b style="color:#000">CUS-00284-K</b> · เลขบัตร: 3-XXXX-XXXXX-XX-8 · เบอร์ที่ตรวจสอบ: 081-XXX-5678</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field-label">ห้องของท่าน</div>
+
+        <div class="unit-card selected">
+          <div class="left">
+            <div class="pj">Nue Core คูคต · A5A02</div>
+            <div class="un">เจ้าของห้อง · สัญญา POS-2024-1198 (Completed) · โอนกรรมสิทธิ์: 14 ส.ค. 2568</div>
+          </div>
+          <div class="right">
+            <span class="pill">Customer</span>
+            <div class="radio"></div>
+          </div>
+        </div>
+
+        <div class="unit-card">
+          <div class="left">
+            <div class="pj">Noble Around 33 · C12A16</div>
+            <div class="un">ผู้เช่า · สัญญาเช่า RNT-2025-0044 (Active)</div>
+          </div>
+          <div class="right">
+            <span class="pill">Tenant</span>
+            <div class="radio"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn outline" type="button">← ออกจากระบบ</button>
+          <button class="btn primary" type="button">ดำเนินการต่อ →</button>
+        </div>
+      </section>
+
+      <aside>
+        <div class="info">
+          <b>เห็นห้องไม่ครบ?</b>
+          ระบบจะแสดงเฉพาะห้องที่ผูกเลขบัตรของท่านในฐานข้อมูล Customer Management หากห้องของท่านยังไม่ปรากฏ กรุณาติดต่อฝ่ายขายเพื่อ Map ข้อมูลก่อน
+        </div>
+        <p class="small">
+          <b style="color:#000">Session นี้ใช้ได้นาน 30 นาที</b><br/>
+          หลังกดดำเนินการต่อ ระบบจะนำท่านไปยังหน้ากรอกข้อมูล (A2) อัตโนมัติ
+        </p>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div style="text-align:center;color:#6E767A;padding:32px;font-size:13px">
+  Noble · PI Change · Self-Service Mockup · A1 (Identity Verification + Unit Selection) — V1.0 · Updated April 2026
+</div>
+
+</body>
+</html>

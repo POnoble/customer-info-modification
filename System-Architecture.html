@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>PI Change Self-Service · System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --black:#000;--cement:#6E767A;--brick:#D26132;--sand:#DDC69A;--steel:#B4BBBF;--bg:#F5F5F5;--line:#E5E7EA;
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Kanit',system-ui,sans-serif;background:#fff;color:#000;font-weight:300;line-height:1.55;margin:0;padding:0}
+  header.cover{background:#000;color:#fff;padding:64px 80px 56px}
+  header.cover .pattern{display:flex;height:6px;margin-bottom:48px}
+  header.cover .pattern span{flex:1}
+  header.cover .pattern span:nth-child(1){background:var(--brick)}
+  header.cover .pattern span:nth-child(2){background:var(--sand)}
+  header.cover .pattern span:nth-child(3){background:var(--cement)}
+  header.cover .pattern span:nth-child(4){background:var(--steel)}
+  header.cover .eyebrow{color:var(--brick);font-weight:700;letter-spacing:.16em;font-size:13px;text-transform:uppercase}
+  header.cover h1{font-size:56px;font-weight:900;letter-spacing:-1px;line-height:1.05;margin:12px 0 16px;max-width:900px}
+  header.cover .lede{color:var(--steel);font-size:18px;max-width:780px}
+  main{padding:64px 80px;max-width:1280px;margin:0 auto}
+  h2{font-size:32px;font-weight:900;margin:48px 0 8px;letter-spacing:-.5px}
+  h2 .num{color:var(--brick);margin-right:14px}
+  h3{font-size:20px;font-weight:700;margin:28px 0 10px}
+  p{margin:8px 0 14px;font-size:15px}
+  .lede2{color:var(--cement);font-size:15px;max-width:820px;margin-bottom:24px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:24px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:24px}
+  .card{background:#fff;border:1px solid var(--line);padding:28px}
+  .card h3{margin-top:0;font-size:18px}
+  .card .num{display:inline-flex;width:36px;height:36px;border-radius:50%;background:#000;color:#fff;align-items:center;justify-content:center;font-weight:700;margin-bottom:14px}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin-top:16px}
+  .compare > div{padding:24px 28px;border-right:1px solid var(--line)}
+  .compare > div:last-child{border-right:0;background:#FFF8F4;border-left:4px solid var(--brick)}
+  .compare h4{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cement);margin:0 0 16px}
+  .compare ul{margin:0;padding-left:18px}
+  .compare li{margin-bottom:8px;font-size:14px}
+  .diagram{background:#FAFBFB;border:1px solid var(--line);padding:32px;margin:24px 0;overflow:auto}
+  .key-list{list-style:none;padding:0;margin:16px 0}
+  .key-list li{padding:14px 0;border-bottom:1px solid var(--line);display:flex;gap:18px}
+  .key-list li:last-child{border-bottom:0}
+  .key-list .k{font-weight:700;color:var(--brick);min-width:160px;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+  .key-list .v{flex:1;font-size:14px;color:#222}
+  /* Table */
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#000;color:#fff;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  tr:hover td{background:#FAFBFB}
+  .pill{display:inline-block;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .pill.green{background:#E6F4EA;color:#1F8B4C}
+  .pill.amber{background:#FEF6E7;color:#7A4D00}
+  .pill.red{background:#FDE8E4;color:#C0392B}
+  .pill.gray{background:#EEF0F2;color:#444}
+  /* Mermaid override */
+  .mermaid{font-family:'Kanit',sans-serif !important}
+  /* Risk callout */
+  .callout{background:#FFF8F4;border-left:4px solid var(--brick);padding:20px 24px;margin:18px 0}
+  .callout b{display:block;margin-bottom:6px}
+  /* Footer */
+  footer{background:#000;color:#fff;padding:48px 80px;font-size:13px;color:var(--steel);letter-spacing:.04em}
+  footer b{color:#fff}
+  .pattern-bottom{display:flex;height:6px}
+  .pattern-bottom span{flex:1}
+  .pattern-bottom span:nth-child(1){background:var(--brick)}
+  .pattern-bottom span:nth-child(2){background:var(--sand)}
+  .pattern-bottom span:nth-child(3){background:var(--cement)}
+  .pattern-bottom span:nth-child(4){background:var(--steel)}
+  /* Section dividers */
+  hr.thick{border:0;height:6px;background:var(--brick);margin:64px 0 0;width:120px}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="pattern"><span></span><span></span><span></span><span></span></div>
+  <div class="eyebrow">Module A · PI Change Request — System Design</div>
+  <h1>Personal Information Change<br/><span style="color:var(--brick)">Self-Service for Customers</span></h1>
+  <p class="lede">
+    ออกแบบระบบให้ลูกค้าสามารถแจ้งเปลี่ยนข้อมูลส่วนบุคคลได้ด้วยตนเองผ่านลิงค์ที่ Sales / CC ส่งไป
+    โดยไม่ต้องกรอกแบบฟอร์มกระดาษ — ระบบเดิม (POS เมนู 2.8) ยังคงใช้งานได้สำหรับกรณีที่ลูกค้าไม่สะดวกทำเอง
+  </p>
+</header>
+
+<main>
+
+<!-- ========== SECTION 1: WHY ========== -->
+<h2><span class="num">01</span>Why · ปัญหาของกระบวนการเดิม</h2>
+<p class="lede2">กระบวนการปัจจุบัน Sales ต้องเป็นคนกรอกข้อมูลแทนลูกค้าทั้งหมด ทำให้เกิดคอขวดและความเสี่ยงด้านการพิมพ์ผิด</p>
+
+<div class="compare">
+  <div>
+    <h4>กระบวนการเดิม (Sales-Driven)</h4>
+    <ul>
+      <li>ลูกค้าโทร/มาที่ออฟฟิศ → ขอเปลี่ยนข้อมูล</li>
+      <li>Sales ส่งฟอร์มกระดาษ (PDF) ให้ลูกค้ากรอก + เซ็น</li>
+      <li>ลูกค้าส่งฟอร์ม + สำเนาบัตร กลับมาให้ Sales</li>
+      <li>Sales เปิด POS เมนู 2.8 → กรอกข้อมูลแทน → upload เอกสาร → Submit to REM</li>
+      <li>เสี่ยง: ลายมืออ่านยาก, พิมพ์ผิด, เอกสารหาย, ใช้เวลา 1–3 วัน</li>
+    </ul>
+  </div>
+  <div>
+    <h4>กระบวนการใหม่ (Customer Self-Service)</h4>
+    <ul>
+      <li>Sales/CC คลิก "Generate Link" จากระบบ → ส่งให้ลูกค้าทาง LINE/Email/SMS</li>
+      <li>ลูกค้ายืนยันตัวตนด้วย ID + OTP เบอร์ที่ลงทะเบียน</li>
+      <li>ลูกค้ากรอกข้อมูลใหม่เอง · เห็นข้อมูลปัจจุบัน · เลือกสิ่งที่ต้องการเปลี่ยน</li>
+      <li>ลูกค้าอ่านและยอมรับ PDPA แล้ว Submit</li>
+      <li>ระบบสร้าง PDF ให้อัตโนมัติ + แจ้ง Sales/CC ใน CIRM ให้ตรวจสอบและ Approve → Push เข้า REM</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 2: HIGH-LEVEL FLOW ========== -->
+<h2><span class="num">02</span>End-to-End Flow · ภาพรวมการทำงาน</h2>
+<p class="lede2">ลูกค้าและพนักงานทำงานร่วมกัน — ลูกค้าเป็น Author ของคำขอ ส่วน Sales/CC ทำหน้าที่ Trigger และ Reviewer</p>
+
+<div class="diagram">
+<pre class="mermaid">
+flowchart LR
+    A([ลูกค้าแจ้ง<br/>ขอเปลี่ยนข้อมูล]):::cust
+    B[Sales / CC<br/>เปิดระบบ CIRM<br/>กด <b>Generate Link</b>]:::sale
+    C{{Magic Link<br/>+ token<br/>+ TTL 24 ชม.}}:::sys
+    D([ลูกค้าเปิดลิงค์<br/>บนมือถือ/PC]):::cust
+    E[A1.1 — กรอกบัตร ปชช./Passport<br/>+ เบอร์โทร]:::cust
+    F{Match กับ<br/>CRM?}:::sys
+    G[A1.2 — รับ OTP<br/>ทาง SMS]:::cust
+    H{OTP ถูก?}:::sys
+    I[A1.3 — เลือกห้อง<br/>จาก list ของลูกค้า]:::cust
+    J[A2 — กรอก/แก้ไขข้อมูล]:::cust
+    K[A3 — Review +<br/>PDPA Consent]:::cust
+    L[A4 — Submit สำเร็จ<br/>ได้ REQ-XXXX]:::cust
+    M[Notify Sales/CC<br/>ใน CIRM Inbox]:::sys
+    N[Sales/CC Review<br/>ใน A6/A7]:::sale
+    O{อนุมัติ?}:::sale
+    P[Push to REM<br/>ผ่าน Existing API]:::sys
+    Q([Email ยืนยัน<br/>ลูกค้า + ทีม]):::cust
+    R[ปฏิเสธ + ระบุเหตุ<br/>ส่งกลับลูกค้า]:::sale
+    S[A8 — Sales POS<br/>เมนู 2.8 (Fallback)]:::sale
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F -- ไม่พบ --> X([ปฏิเสธ + ติดต่อ Sales])
+    F -- พบ --> G
+    G --> H
+    H -- ผิด 5 ครั้ง --> Y([ล็อก 30 นาที])
+    H -- ถูก --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+    M --> N
+    N --> O
+    O -- Yes --> P
+    O -- No --> R
+    P --> Q
+
+    A -. กรณีลูกค้าไม่สะดวก .-> S
+    S --> P
+
+    classDef cust fill:#FFF8F4,stroke:#D26132,stroke-width:2px,color:#000
+    classDef sale fill:#EEF0F2,stroke:#000,stroke-width:1.5px,color:#000
+    classDef sys fill:#FAFBFB,stroke:#6E767A,stroke-width:1px,color:#000
+</pre>
+</div>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 3: A1 IDENTITY VERIFY DEEP DIVE ========== -->
+<h2><span class="num">03</span>A1 · Identity Verification — รายละเอียดการตรวจสอบ</h2>
+<p class="lede2">หัวใจของระบบ self-service คือการพิสูจน์ตัวตนแบบ 2-factor (สิ่งที่ลูกค้า "รู้" + สิ่งที่ลูกค้า "มี") โดยไม่ต้องสร้างบัญชี</p>
+
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+    participant C as Customer (Browser)
+    participant W as Web App (CIRM Portal)
+    participant API as Identity Service
+    participant CRM as Customer Mgmt DB
+    participant SMS as SMS Gateway
+    participant LOG as Audit Log
+
+    C->>W: เปิดลิงค์ + token
+    W->>API: validateToken(token)
+    API-->>W: OK · session_id
+    C->>W: กรอก ID/Passport + Phone
+    W->>API: lookup(id_no, phone)
+    API->>CRM: SELECT customer WHERE id_no=? AND phone=?
+    CRM-->>API: { customer_id, masked_data, units[] }
+    alt Match found
+        API->>SMS: sendOTP(phone, ref)
+        SMS-->>C: SMS · "Noble OTP 429X4Y · Ref N4F2-9X"
+        API->>LOG: write(event=otp_sent)
+        API-->>W: { ref, ttl=300s, resend_after=60s }
+        W-->>C: หน้า OTP
+        C->>W: กรอก OTP 6 หลัก
+        W->>API: verifyOTP(session, code)
+        alt OTP correct
+            API->>LOG: write(event=identity_verified)
+            API-->>W: { verified=true, units[] }
+            W-->>C: หน้าเลือกห้อง (A1.3)
+        else OTP wrong (≤4 ครั้ง)
+            API-->>W: { error=invalid, attempts_left }
+            W-->>C: ลองใหม่
+        else OTP wrong 5 ครั้ง
+            API->>LOG: write(event=lockout)
+            API-->>W: { locked_until=+30min }
+            W-->>C: ปฏิเสธ + ติดต่อ Sales
+        end
+    else No match in CRM
+        API->>LOG: write(event=identity_not_found)
+        API-->>W: { error=not_found }
+        W-->>C: "ไม่พบข้อมูล · กรุณาติดต่อ Sales"
+    end
+</pre>
+</div>
+
+<h3>Validation Rules</h3>
+<table>
+  <thead><tr><th>เงื่อนไข</th><th>Logic</th><th>เหตุผล</th></tr></thead>
+  <tbody>
+    <tr><td><b>Phone ต้องตรงกับ CRM</b></td><td>ค้น customer ที่ id_no = input AND phone = input (exact match)</td><td>ป้องกันการสุ่มเลขบัตรแล้วยิง OTP ไปเบอร์ใหม่</td></tr>
+    <tr><td><b>OTP ใช้ได้ครั้งเดียว · TTL 5 นาที</b></td><td>เก็บ hash ของ OTP ใน Redis · ลบทิ้งหลังใช้</td><td>กัน replay attack · ป้องกัน SMS interception</td></tr>
+    <tr><td><b>Rate limit · 3 OTP / เบอร์ / ชม.</b></td><td>Sliding window 1 ชม.</td><td>กัน SMS bombing</td></tr>
+    <tr><td><b>OTP ผิด 5 ครั้ง = ล็อก 30 นาที</b></td><td>เก็บ counter ใน Redis · TTL 30 นาที</td><td>กัน brute-force OTP 6 หลัก</td></tr>
+    <tr><td><b>Token ของลิงค์ TTL 24 ชม. · ใช้ได้ 1 ครั้ง</b></td><td>JWT signed + jti ใน blacklist หลังยืนยันสำเร็จ</td><td>ป้องกันลิงค์รั่ว · forward link โดยไม่ตั้งใจ</td></tr>
+    <tr><td><b>Lookup เฉพาะลูกค้าที่อยู่ใน CRM</b></td><td>JOIN customer × contract WHERE status IN (Completed, Active Rental)</td><td>ลูกค้าที่ยังไม่จบสัญญา/ไม่ใช่ผู้เช่า ไม่มีสิทธิ์เปลี่ยน — ต้องไป POS</td></tr>
+    <tr><td><b>Multi-unit support</b></td><td>SELECT units WHERE owner_id = customer_id</td><td>ลูกค้า 1 คนอาจมีหลายห้อง · เลือก 1 ห้องต่อ 1 คำขอ</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+<b>ข้อจำกัดที่ต้องระวัง</b>
+หาก Sales ไม่ได้บันทึกเบอร์ลูกค้าในระบบ CRM (หรือเบอร์ไม่ตรง) ลูกค้าจะ verify ไม่ผ่าน → จึงต้องมี <b>Pre-launch task</b>:
+ทำ Data Cleansing เบอร์โทร + ID Card ของลูกค้าทุกคนใน CRM ก่อน go-live · หรือเปิดทาง <b>Step-up Verification</b> ผ่าน Sales (Sales เป็นคน trigger OTP จากในระบบ POS)
+</div>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 4: ROLES & PERMISSIONS ========== -->
+<h2><span class="num">04</span>Roles · ใครทำอะไรได้บ้าง</h2>
+<table>
+  <thead><tr><th width="22%">Role</th><th width="35%">สิทธิ์ใช้งาน</th><th>Channel</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Customer</b><br/><span class="pill gray">Self-Service</span></td>
+      <td>เปิดลิงค์ · ยืนยันตัวตน · เลือกห้อง · กรอกข้อมูลใหม่ · ดูสถานะคำขอของตัวเอง</td>
+      <td>Web (มือถือ/PC)</td>
+    </tr>
+    <tr>
+      <td><b>Sales Advisor</b><br/><span class="pill amber">Trigger</span></td>
+      <td>กด <b>Generate Link</b> ต่อ 1 ลูกค้า / 1 ห้อง · ดูคำขอที่ลูกค้าส่งมา · ทำ POS เมนู 2.8 แทนลูกค้า (Fallback)</td>
+      <td>CIRM, POS</td>
+    </tr>
+    <tr>
+      <td><b>Customer Care (CC)</b><br/><span class="pill amber">Trigger</span></td>
+      <td>เหมือน Sales + ตอบคำถาม + ขยายอายุลิงค์ + ส่งลิงค์ซ้ำ</td>
+      <td>CIRM, Contact Center</td>
+    </tr>
+    <tr>
+      <td><b>Reviewer (Sales Admin / CC Lead)</b><br/><span class="pill green">Approve</span></td>
+      <td>ตรวจคำขอ · เปรียบเทียบเอกสารแนบ · Approve → Push to REM · Reject + เหตุผล</td>
+      <td>CIRM (A6, A7)</td>
+    </tr>
+    <tr>
+      <td><b>System Admin</b><br/><span class="pill red">Audit</span></td>
+      <td>ดู Audit Log ทั้งหมด · ปลดล็อก customer ที่ติด OTP lockout · จัดการ rate limit · revoke link</td>
+      <td>Admin Console</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 5: KEY DECISIONS ========== -->
+<h2><span class="num">05</span>Key Design Decisions</h2>
+
+<ul class="key-list">
+  <li><span class="k">No Account Required</span><span class="v">ลูกค้าไม่ต้องสมัครสมาชิก / ไม่ต้องตั้งรหัส · ใช้ ID + OTP ครั้งต่อครั้ง · ลด friction และไม่ต้องบริหาร password reset</span></li>
+  <li><span class="k">Magic Link, Not Open URL</span><span class="v">ลิงค์ผูกกับ token + TTL 24 ชม. · ใช้ได้ 1 ครั้ง · กันไม่ให้ลูกค้าส่งลิงค์ต่อให้คนอื่นโดยไม่ตั้งใจ</span></li>
+  <li><span class="k">2-Factor by Default</span><span class="v">ID/Passport (สิ่งที่รู้) + OTP ที่ส่งไปยังเบอร์ที่ลงทะเบียน (สิ่งที่มี) — ระดับความปลอดภัยใกล้เคียงธนาคาร</span></li>
+  <li><span class="k">Existing System ยังอยู่</span><span class="v">POS เมนู 2.8 ยังเปิดอยู่ครบทุกฟีเจอร์ · ใช้กรณี Fallback (ลูกค้าไม่สะดวก / verify ไม่ผ่าน / สูงอายุ)</span></li>
+  <li><span class="k">PDF Auto-Generate</span><span class="v">หลังลูกค้า Submit ระบบสร้างฟอร์ม PDF ภาษาไทย+อังกฤษ พร้อม e-Signature ของลูกค้าและ timestamp · เก็บแทนเอกสารกระดาษเดิม</span></li>
+  <li><span class="k">Push เข้า REM ผ่าน API เดิม</span><span class="v">ใช้ endpoint เดียวกับ POS เมนู 2.8 · ไม่ต้องสร้าง integration ใหม่ · REM ไม่รู้ว่าใครเป็นคนกรอก (Customer หรือ Sales)</span></li>
+  <li><span class="k">Audit Trail ครบถ้วน</span><span class="v">ทุก event (link generated · OTP sent · verified · field changed · approved · pushed) เก็บลง immutable log · เพื่อ PDPA compliance และ dispute resolution</span></li>
+  <li><span class="k">PDPA-First</span><span class="v">แสดงข้อมูลปัจจุบันแบบ masked (ชื่อ ส****ี · เบอร์ 081-XXX-5678) · ขอ Consent ก่อน submit · มีลิงค์ Privacy Policy ทุกหน้า</span></li>
+</ul>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 6: STATE MACHINE ========== -->
+<h2><span class="num">06</span>Request Lifecycle · State Machine</h2>
+<p class="lede2">สถานะของคำขอ (REQ-XXXX-X) ตั้งแต่สร้างลิงค์จนถึง Push เข้า REM</p>
+
+<div class="diagram">
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> LinkGenerated: Sales/CC สร้างลิงค์
+    LinkGenerated --> Verifying: ลูกค้าเปิดลิงค์
+    LinkGenerated --> LinkExpired: 24 ชม. ผ่านไป
+    Verifying --> Drafting: OTP สำเร็จ
+    Verifying --> Locked: OTP ผิด 5 ครั้ง
+    Locked --> Verifying: 30 นาทีผ่านไป
+    Drafting --> AutoSaved: บันทึกอัตโนมัติทุก 30 วิ
+    AutoSaved --> Drafting
+    Drafting --> PendingReview: ลูกค้า Submit + PDPA
+    PendingReview --> Approved: Reviewer อนุมัติ
+    PendingReview --> NeedInfo: Reviewer ขอข้อมูลเพิ่ม
+    NeedInfo --> Drafting: ลูกค้าแก้แล้วส่งใหม่
+    PendingReview --> Rejected: Reviewer ปฏิเสธ
+    Approved --> PushedToREM: API call สำเร็จ
+    PushedToREM --> Completed: REM ตอบกลับ Success
+    PushedToREM --> PushFailed: REM ตอบกลับ Fail
+    PushFailed --> Approved: Retry
+    Completed --> [*]
+    Rejected --> [*]
+    LinkExpired --> [*]
+</pre>
+</div>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 7: DATA & SECURITY ========== -->
+<h2><span class="num">07</span>Data Model & Security Layer</h2>
+
+<div class="grid-2">
+  <div class="card">
+    <span class="num">A</span>
+    <h3>Tables ใหม่ที่ต้องเพิ่ม</h3>
+    <table style="font-size:13px">
+      <thead><tr><th>Table</th><th>หน้าที่</th></tr></thead>
+      <tbody>
+        <tr><td><code>pi_change_link</code></td><td>เก็บ token, ttl, customer_id, generated_by, used_at</td></tr>
+        <tr><td><code>pi_change_request</code></td><td>เก็บ REQ-XXXX, สถานะ, ห้อง, fields_changed JSON, attachments, pdpa_consent</td></tr>
+        <tr><td><code>otp_session</code></td><td>เก็บ session, hash(otp), ref, attempts, expires_at (Redis)</td></tr>
+        <tr><td><code>pi_audit_log</code></td><td>Immutable log · event_type, actor, target, ip, ua, payload</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <span class="num">B</span>
+    <h3>Security Controls</h3>
+    <ul style="margin:0;padding-left:18px;font-size:14px">
+      <li>HTTPS only · HSTS · TLS 1.3</li>
+      <li>JWT signed (RS256) สำหรับ link token</li>
+      <li>OTP เก็บเป็น bcrypt hash ใน Redis · ไม่เก็บ plain</li>
+      <li>Rate limit ระดับ IP + Phone + ID Number</li>
+      <li>CSRF token + SameSite=Strict cookie</li>
+      <li>WAF rules: blocked common payloads · geo-fence option</li>
+      <li>เอกสารแนบ scan virus + เก็บใน private S3 + signed URL</li>
+      <li>Audit log immutable (append-only) · เก็บอย่างน้อย 7 ปี ตาม PDPA</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 8: ROLLOUT ========== -->
+<h2><span class="num">08</span>Rollout Plan · Phased Launch</h2>
+
+<div class="grid-3">
+  <div class="card">
+    <span class="num">1</span>
+    <h3>Phase 1 — Foundation (M+1)</h3>
+    <p style="font-size:13px;color:#555">Data cleansing เบอร์ + ID Card ใน CRM, สร้าง Identity Service, integrate SMS gateway, สร้าง Audit Log infra</p>
+  </div>
+  <div class="card">
+    <span class="num">2</span>
+    <h3>Phase 2 — Pilot (M+2)</h3>
+    <p style="font-size:13px;color:#555">เปิดใช้งานกับ 1 โครงการ (Nue Core คูคต) เฉพาะ field <b>Email + Phone</b> · เก็บ feedback · วัด completion rate, OTP success</p>
+  </div>
+  <div class="card">
+    <span class="num">3</span>
+    <h3>Phase 3 — Full Launch (M+4)</h3>
+    <p style="font-size:13px;color:#555">เปิดทุกโครงการ + ทุก field · เพิ่ม channel ส่งลิงค์ผ่าน LINE OA · เปิด Tenant flow · KPI: 70% ของคำขอผ่าน self-service ภายใน 6 เดือน</p>
+  </div>
+</div>
+
+<hr class="thick"/>
+
+<!-- ========== SECTION 9: METRICS ========== -->
+<h2><span class="num">09</span>Success Metrics</h2>
+<table>
+  <thead><tr><th>Metric</th><th>Baseline (Today)</th><th>Target (6 เดือนหลัง launch)</th></tr></thead>
+  <tbody>
+    <tr><td>Self-service completion rate</td><td>0%</td><td>≥ 70%</td></tr>
+    <tr><td>เวลาเฉลี่ยจากแจ้ง→Push REM</td><td>1–3 วัน</td><td>&lt; 4 ชม. (รวม review)</td></tr>
+    <tr><td>Sales effort ต่อ 1 คำขอ</td><td>~25 นาที</td><td>&lt; 5 นาที (เฉพาะ Generate + Approve)</td></tr>
+    <tr><td>Data error rate (พิมพ์ผิด)</td><td>~6%</td><td>&lt; 1%</td></tr>
+    <tr><td>OTP first-try success</td><td>—</td><td>≥ 92%</td></tr>
+    <tr><td>NPS ของกระบวนการ (จาก customer)</td><td>—</td><td>≥ +40</td></tr>
+  </tbody>
+</table>
+
+</main>
+
+<footer>
+  <div style="margin-bottom:20px">
+    <b style="font-size:18px;letter-spacing:.2em">NOBLE</b> · Personal Information Change · Self-Service System Design V1.0
+  </div>
+  <div>Updated April 2026 · For internal review only · Owner: Customer Experience &amp; Platform Design Team</div>
+</footer>
+<div class="pattern-bottom"><span></span><span></span><span></span><span></span></div>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme:'base',
+  fontFamily:'Kanit, sans-serif',
+  themeVariables:{
+    primaryColor:'#FFF8F4',
+    primaryBorderColor:'#D26132',
+    primaryTextColor:'#000',
+    lineColor:'#6E767A',
+    fontFamily:'Kanit, sans-serif',
+    fontSize:'14px'
+  }
+});
+</script>
+</body>
+</html>

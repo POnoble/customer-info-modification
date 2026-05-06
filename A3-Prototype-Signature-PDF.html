@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>A3 Prototype · Signature & PDF Download</title>
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<!-- jsPDF for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- html2canvas to capture document as image (preserves Thai text correctly) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  :root{
+    --black:#000;
+    --white:#fff;
+    --cement:#6E767A;
+    --brick:#D26132;
+    --sand:#DDC69A;
+    --steel:#B4BBBF;
+    --line:#E5E7EA;
+    --bg:#F5F5F5;
+    --ok:#1F8B4C;
+    --warn:#E0A800;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{font-family:'Kanit',system-ui,sans-serif;background:#EEF0F2;color:#000;font-weight:300;line-height:1.5}
+
+  /* Browser chrome */
+  .page{max-width:1440px;margin:24px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.18)}
+  .chrome{height:32px;background:#F0F0F0;display:flex;align-items:center;padding:0 12px;gap:6px;font-size:11px;color:var(--cement)}
+  .chrome .dot{width:10px;height:10px;border-radius:50%;background:#FF5F56}
+  .chrome .dot+.dot{background:#FFBD2E}
+  .chrome .dot+.dot+.dot{background:#27C93F}
+  .chrome .url{flex:1;text-align:center;color:var(--cement)}
+
+  header.site{height:70px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px}
+  .logo{border:1.5px solid #000;padding:4px 12px;font-weight:700;font-size:16px}
+  .top-meta{display:flex;align-items:center;gap:24px;color:var(--cement);font-size:13px}
+  .verified{background:#E6F4EA;color:var(--ok);padding:4px 12px;font-weight:700;font-size:11px;letter-spacing:.5px}
+
+  .pattern{display:flex;height:6px}
+  .pattern span{flex:1}
+  .pattern span:nth-child(1){background:var(--brick)}
+  .pattern span:nth-child(2){background:var(--sand)}
+  .pattern span:nth-child(3){background:var(--cement)}
+  .pattern span:nth-child(4){background:var(--steel)}
+
+  .stepper{background:var(--bg);height:56px;display:flex;align-items:center;padding:0 64px;gap:32px;font-size:11px;color:var(--cement)}
+  .stepper .step{font-weight:700;letter-spacing:.1em}
+  .stepper .bars{display:flex;gap:20px;flex:1;justify-content:center}
+  .stepper .bar{width:160px;height:4px;background:var(--line);border-radius:2px}
+  .stepper .bar.done{background:var(--brick)}
+
+  main{padding:48px 64px 64px;background:#fff}
+  h1.page-title{font-size:32px;font-weight:900}
+  .lede{color:var(--cement);font-size:14px;margin-top:6px}
+
+  .ctx-bar{background:#000;color:#fff;padding:18px 24px;margin-top:32px;display:flex;align-items:center;gap:20px}
+  .ctx-bar .lbl{color:var(--sand);font-size:12px;font-weight:500;letter-spacing:.5px}
+  .ctx-bar .units{font-weight:900;font-size:20px}
+  .ctx-bar .doc-pill{margin-left:auto;background:var(--brick);padding:8px 16px;font-weight:700;font-size:12px;letter-spacing:.5px}
+
+  /* Status banner */
+  .err-banner{background:#FEF6E7;border-left:4px solid var(--warn);padding:14px 20px;margin-top:32px;font-size:13px;color:#7A4D00}
+  .err-banner b{display:block;margin-bottom:4px}
+
+  /* Document preview area */
+  .doc-toolbar{margin-top:32px;background:#000;color:#fff;display:flex;align-items:center;padding:12px 16px;gap:12px;font-size:12px}
+  .doc-toolbar .info{flex:1}
+  .doc-toolbar button{background:transparent;border:1px solid #fff;color:#fff;padding:6px 12px;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer}
+  .doc-toolbar button:hover{background:#fff;color:#000}
+
+  .doc-frame{background:#FAFBFB;padding:32px;border:1px solid var(--line)}
+
+  /* The actual document — paper-like */
+  .doc{background:#fff;width:100%;max-width:840px;margin:0 auto;padding:40px 56px;box-shadow:0 8px 32px rgba(0,0,0,.08);font-size:13px;color:#000}
+  .doc-pattern{display:flex;height:18px;margin:-40px -56px 32px}
+  .doc-pattern span{flex:1}
+  .doc-pattern span:nth-child(1){background:#000}
+  .doc-pattern span:nth-child(2){background:var(--cement)}
+  .doc-pattern span:nth-child(3){background:var(--brick)}
+  .doc-pattern span:nth-child(4){background:var(--sand)}
+  .doc-pattern span:nth-child(5){background:var(--steel)}
+
+  .doc-title{text-align:center;margin-bottom:32px}
+  .doc-title h2{font-size:22px;font-weight:700;line-height:1.3}
+  .doc-title h3{font-size:15px;font-weight:500;color:#222;margin-top:4px}
+
+  .doc-meta{display:grid;grid-template-columns:1fr auto;align-items:end;margin-bottom:24px}
+  .doc-meta .date-line{text-align:right;font-size:13px}
+  .doc-meta .date-line b{margin-left:8px;border-bottom:1px solid #000;padding-bottom:2px;display:inline-block;min-width:140px}
+
+  .doc-info-row{display:flex;gap:24px;margin-bottom:14px;font-size:13px;align-items:end}
+  .doc-info-row .label{min-width:160px;font-weight:500}
+  .doc-info-row .value{flex:1;border-bottom:1px solid #000;padding-bottom:2px}
+  .doc-info-row .value.brick{color:var(--brick);font-weight:700}
+
+  .doc-section-intro{margin:24px 0 16px;font-weight:500;font-size:13px}
+
+  .doc-field{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;font-size:13px}
+  .doc-field .checkbox{width:18px;height:18px;border:1.5px solid #000;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .doc-field .field-label{min-width:160px}
+  .doc-field .field-label b{display:block;font-size:13px}
+  .doc-field .field-label small{color:var(--cement);font-size:10px;font-weight:400}
+  .doc-field .values{flex:1}
+  .doc-field .values .vline{border-bottom:1px solid #000;padding:2px 0;color:var(--brick);font-weight:500;margin-bottom:4px}
+  .doc-field .values .vline:empty::before{content:"\00a0";opacity:0}
+  .doc-field .edit-btn{flex-shrink:0;border:1px solid #000;background:#fff;font-family:inherit;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;letter-spacing:.4px}
+  .doc-field .edit-btn:hover{background:#000;color:#fff}
+
+  .doc-pdpa{border-top:1px solid #000;margin-top:24px;padding-top:14px;font-size:11px;line-height:1.6}
+  .doc-pdpa b{display:block;margin-bottom:4px;font-size:12px}
+
+  .doc-sign-area{margin-top:32px;display:grid;grid-template-columns:1.5fr 1fr;gap:32px}
+  .doc-sign-block{position:relative}
+  .doc-sign-line{border-bottom:1px solid #000;height:60px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
+  .doc-sign-line img{max-height:50px}
+  .doc-sign-label{font-size:10px;color:var(--cement);margin-top:4px}
+  .doc-sign-name{text-align:center;font-size:11px;margin-top:6px}
+  .doc-date-line{text-align:center;font-size:14px;font-weight:700;border-bottom:1px solid #000;padding-bottom:4px;height:60px;display:flex;align-items:flex-end;justify-content:center}
+
+  .doc-footer-pattern{display:flex;height:18px;margin:32px -56px -40px}
+  .doc-footer-pattern span{flex:1}
+  .doc-footer-pattern span:nth-child(1){background:var(--steel)}
+  .doc-footer-pattern span:nth-child(2){background:var(--sand)}
+  .doc-footer-pattern span:nth-child(3){background:var(--brick)}
+  .doc-footer-pattern span:nth-child(4){background:var(--cement)}
+  .doc-footer-pattern span:nth-child(5){background:#000}
+
+  .doc-page-info{font-size:9px;color:var(--cement);margin-top:8px;text-align:center}
+
+  /* Signature section */
+  .sig-section{margin-top:48px}
+  .sig-section h2{font-size:24px;font-weight:900}
+  .sig-section .lede{margin:6px 0 24px}
+
+  .sig-card{background:#fff;border:2px solid var(--brick);padding:24px;display:grid;grid-template-columns:1fr 280px;gap:24px}
+  .sig-tabs{display:flex;gap:0;margin-bottom:14px;width:fit-content}
+  .sig-tabs button{appearance:none;border:1.5px solid #000;background:#fff;font-family:inherit;font-size:13px;font-weight:700;padding:10px 22px;cursor:pointer;letter-spacing:.5px}
+  .sig-tabs button.active{background:#000;color:#fff}
+
+  .sig-canvas-wrap{position:relative}
+  canvas#sigCanvas{
+    width:100%;height:200px;border:2px dashed var(--steel);background:#FAFBFB;cursor:crosshair;
+    touch-action:none;display:block
+  }
+  canvas#sigCanvas.drawn{border-color:var(--brick);background:#fff}
+  .sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--cement);font-size:14px;pointer-events:none}
+  .sig-hint.hidden{display:none}
+  .sig-hint .small{font-size:12px;color:var(--steel);margin-top:4px}
+  .sig-baseline{border-top:1px solid var(--steel);margin-top:8px;font-size:10px;color:var(--cement)}
+
+  .sig-typed-wrap{display:none}
+  .sig-typed-wrap.active{display:block}
+  .sig-typed-input{width:100%;height:80px;border:2px solid var(--brick);background:#fff;padding:12px 16px;font-family:'Kanit';font-size:36px;font-weight:500;color:#000;text-align:center}
+  .sig-typed-preview{margin-top:16px;border:2px dashed var(--steel);height:120px;background:#FAFBFB;display:flex;align-items:center;justify-content:center;font-style:italic;font-size:42px;font-family:'Brush Script MT','Kanit',cursive}
+
+  .sig-controls{display:flex;flex-direction:column;gap:10px}
+  .sig-controls h4{font-size:11px;font-weight:700;color:var(--cement);letter-spacing:.5px;margin-bottom:4px}
+  .sig-btn{appearance:none;border:1px solid #000;background:#fff;color:#000;font-family:inherit;font-size:12px;font-weight:700;padding:10px 12px;cursor:pointer;text-align:left;letter-spacing:.4px}
+  .sig-btn:hover{background:#000;color:#fff}
+  .sig-btn.primary{background:var(--brick);color:#fff;border-color:var(--brick)}
+  .sig-btn.primary:hover{background:#A14820;border-color:#A14820}
+  .sig-btn:disabled{background:#E5E7EA;color:#9aa1a6;border-color:#E5E7EA;cursor:not-allowed}
+
+  .apply-toggle{background:#F5F5F5;padding:14px;display:flex;align-items:center;gap:10px;font-size:12px;margin-top:6px}
+  .apply-toggle input{width:18px;height:18px;accent-color:var(--brick)}
+
+  .sig-legal{font-size:10px;color:var(--cement);margin-top:12px;line-height:1.5}
+
+  /* Confirmation card */
+  .conf-card{margin-top:32px;background:#FFF8F4;border:1px solid var(--brick);border-left:4px solid var(--brick);padding:20px 24px}
+  .conf-card h3{font-size:14px;color:var(--brick);font-weight:700;margin-bottom:12px}
+  .conf-row{display:flex;align-items:flex-start;gap:12px;margin-top:10px;font-size:13px}
+  .conf-row input{width:18px;height:18px;accent-color:var(--brick);margin-top:2px}
+  .conf-row .small{color:var(--cement);font-size:11px}
+
+  /* Footer */
+  footer.actions{margin-top:32px;display:flex;align-items:center;gap:16px;padding-top:24px;border-top:1px solid var(--line)}
+  .btn-outline{border:1.5px solid #000;background:#fff;color:#000;padding:12px 24px;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.5px;cursor:pointer}
+  .btn-outline:hover{background:#000;color:#fff}
+  .btn-primary{border:0;background:var(--brick);color:#fff;padding:14px 32px;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.8px;cursor:pointer;margin-left:auto}
+  .btn-primary:hover{background:#A14820}
+  .btn-primary:disabled{background:var(--steel);cursor:not-allowed}
+
+  /* Toast notifications */
+  .toast{position:fixed;bottom:24px;right:24px;background:#000;color:#fff;padding:14px 20px;font-size:13px;font-weight:500;border-left:4px solid var(--brick);box-shadow:0 8px 24px rgba(0,0,0,.3);transform:translateY(120%);transition:transform .3s;z-index:9999;max-width:400px}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-left-color:var(--ok)}
+
+  /* Loading overlay during PDF gen */
+  .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:99999;color:#fff;font-size:18px;flex-direction:column;gap:16px}
+  .loading-overlay.show{display:flex}
+  .loading-overlay .spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:var(--brick);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Edit popup */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9000}
+  .modal.show{display:flex}
+  .modal-card{background:#fff;width:90%;max-width:720px;border-top:4px solid var(--brick);padding:32px;max-height:90vh;overflow-y:auto}
+  .modal-card h3{font-size:24px;font-weight:900}
+  .modal-card .modal-sub{color:var(--cement);font-size:13px;margin-top:4px;margin-bottom:18px}
+  .modal-cur{background:var(--bg);padding:14px 16px;color:var(--cement);font-size:13px;margin-bottom:16px}
+  .modal-arrow{text-align:center;color:var(--brick);font-weight:700;font-size:22px;margin:8px 0}
+  .modal-input-label{font-size:11px;font-weight:700;color:var(--cement);letter-spacing:.5px;margin-bottom:6px}
+  .modal-input{width:100%;padding:12px 14px;font-family:inherit;font-size:14px;border:2px solid var(--brick);outline:none;margin-bottom:14px}
+  .modal-warn{background:#FEF6E7;border-left:4px solid var(--warn);padding:12px 16px;font-size:12px;color:#7A4D00;margin-top:14px}
+  .modal-actions{display:flex;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="chrome">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="url">noblehome.com/cirm/pi-change/review</span>
+  </div>
+
+  <header class="site">
+    <div class="logo">noble</div>
+    <div class="top-meta">
+      <span class="verified">● ยืนยันตัวตนแล้ว</span>
+      <span><b>TH</b> | EN</span>
+    </div>
+  </header>
+
+  <div class="pattern"><span></span><span></span><span></span><span></span></div>
+
+  <div class="stepper">
+    <div class="step" style="color:var(--ok)">ขั้นตอนที่ 3 จาก 4</div>
+    <div class="bars">
+      <div class="bar done"></div>
+      <div class="bar done"></div>
+      <div class="bar done"></div>
+      <div class="bar"></div>
+    </div>
+    <div>ยืนยันตัวตน ✓ · กรอกข้อมูล ✓ · ตรวจสอบ · ส่งคำขอ</div>
+  </div>
+
+  <main>
+    <h1 class="page-title">ตรวจสอบและเซ็นเอกสาร</h1>
+    <p class="lede">ระบบสร้างแบบฟอร์มแจ้งเปลี่ยนแปลงข้อมูลส่วนตัวให้อัตโนมัติ · กรุณาตรวจทาน · หากถูกต้องให้เซ็นชื่อเพื่อยืนยัน</p>
+
+    <div class="ctx-bar">
+      <div>
+        <div class="lbl">คำขอจะถูกส่งสำหรับ</div>
+        <div><span class="units">2 ห้อง</span> · Nue Core คูคต A5A02 · Noble Around 33 C12A16</div>
+      </div>
+      <div class="doc-pill">ระบบสร้าง 2 เอกสาร</div>
+    </div>
+
+    <div class="err-banner">
+      <b>💡 พบข้อมูลที่ผิด?</b>
+      คลิกปุ่ม <b style="color:#000">[✎ แก้]</b> ที่ฟิลด์ในเอกสาร — popup จะเปิดให้แก้เฉพาะฟิลด์นั้น · เอกสารอัปเดตทันที + ลายเซ็นจะถูกล้างเพื่อความปลอดภัย
+    </div>
+
+    <div class="doc-toolbar">
+      <div class="info">📄 เอกสารที่ <b id="docNum">1</b> จาก 2 · <b id="docReqId">REQ-2604-A · A5A02</b></div>
+      <button onclick="switchDoc(1)" id="btnDoc1" class="active-tab">เอกสาร 1</button>
+      <button onclick="switchDoc(2)" id="btnDoc2">เอกสาร 2</button>
+    </div>
+
+    <div class="doc-frame">
+      <!-- This is the document that will be captured for PDF -->
+      <div class="doc" id="documentToCapture">
+        <div class="doc-pattern"><span></span><span></span><span></span><span></span><span></span></div>
+
+        <div class="doc-title">
+          <h2>แบบฟอร์มแจ้งเปลี่ยนแปลงข้อมูลส่วนตัว</h2>
+          <h3>Personal Information Change Form</h3>
+        </div>
+
+        <div class="doc-meta">
+          <div></div>
+          <div class="date-line">วันที่ / Date <b id="docDate">23 เมษายน 2569</b></div>
+        </div>
+
+        <div class="doc-info-row">
+          <div class="label">ข้าพเจ้า / Name – Surname</div>
+          <div class="value brick" data-bind="customerName">นาง สาวิตรี อ่อนเลิศศรี (Mrs. Sawitree Ornlartsri)</div>
+        </div>
+        <div class="doc-info-row">
+          <div class="label">ห้องชุดเลขที่ / Unit No.</div>
+          <div class="value" data-bind="unitNo">A5A02</div>
+          <div class="label" style="min-width:120px">โครงการ / Project</div>
+          <div class="value" data-bind="project">Nue Core คูคต</div>
+        </div>
+
+        <div class="doc-section-intro">มีความประสงค์ขอเปลี่ยนแปลงข้อมูลส่วนตัว ดังนี้ / I would like to change the following information:</div>
+
+        <div class="doc-field">
+          <div class="checkbox">✕</div>
+          <div class="field-label">
+            <b>ชื่อ – นามสกุล</b>
+            <small>Name – Surname</small>
+          </div>
+          <div class="values">
+            <div class="vline" data-bind="nameTH">TH:&nbsp; นาง สาวิตรี อ่อนเลิศศรี</div>
+            <div class="vline" data-bind="nameEN">EN:&nbsp; Mrs. Sawitree Ornlartsri</div>
+          </div>
+          <button class="edit-btn" onclick="openEditModal('name')">✎ แก้</button>
+        </div>
+
+        <div class="doc-field">
+          <div class="checkbox">✕</div>
+          <div class="field-label">
+            <b>เลขบัตรประชาชน</b>
+            <small>ID Card Number</small>
+          </div>
+          <div class="values">
+            <div class="vline" data-bind="idCard">3-1002-05523-40-8</div>
+          </div>
+          <button class="edit-btn" onclick="openEditModal('idCard')">✎ แก้</button>
+        </div>
+
+        <div class="doc-field">
+          <div class="checkbox">✕</div>
+          <div class="field-label">
+            <b>อีเมล</b>
+            <small>Email</small>
+          </div>
+          <div class="values">
+            <div class="vline" data-bind="email">sawitree.o@example.com</div>
+          </div>
+          <button class="edit-btn" onclick="openEditModal('email')">✎ แก้</button>
+        </div>
+
+        <div class="doc-field">
+          <div class="checkbox">✕</div>
+          <div class="field-label">
+            <b>เบอร์โทรศัพท์</b>
+            <small>Telephone Number</small>
+          </div>
+          <div class="values">
+            <div class="vline" data-bind="phone">☐ เพิ่มหมายเลข &nbsp; ☒ เปลี่ยนหมายเลข : 062-555-1289</div>
+          </div>
+          <button class="edit-btn" onclick="openEditModal('phone')">✎ แก้</button>
+        </div>
+
+        <div class="doc-field">
+          <div class="checkbox"></div>
+          <div class="field-label">
+            <b>ที่อยู่ตามบัตรประชาชน</b>
+            <small>Address (per ID card)</small>
+          </div>
+          <div class="values"><div class="vline">—</div></div>
+        </div>
+
+        <div class="doc-field">
+          <div class="checkbox">✕</div>
+          <div class="field-label">
+            <b>ที่อยู่จัดส่งเอกสาร</b>
+            <small>Mailing Address</small>
+          </div>
+          <div class="values">
+            <div class="vline" data-bind="addrTH">TH:&nbsp; 88/12 ซ.สุขุมวิท 101 แขวงบางจาก เขตพระโขนง กรุงเทพฯ 10260</div>
+            <div class="vline" data-bind="addrEN">EN:&nbsp; 88/12 Sukhumvit 101, Bang Chak, Phra Khanong, Bangkok 10260</div>
+          </div>
+          <button class="edit-btn" onclick="openEditModal('address')">✎ แก้</button>
+        </div>
+
+        <div class="doc-pdpa">
+          <b>PDPA Consent / การยินยอมใช้ข้อมูลส่วนบุคคล</b>
+          ข้าพเจ้ายินยอมให้บริษัท โนเบิล ดีเวลลอปเมนท์ จำกัด (มหาชน) เก็บ รวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลของข้าพเจ้าตามที่ระบุไว้ในเอกสารนี้ เพื่อวัตถุประสงค์ในการดำเนินการเปลี่ยนแปลงข้อมูลลูกค้า · นโยบายเต็ม: noblehome.com/policy
+        </div>
+
+        <div class="doc-sign-area">
+          <div class="doc-sign-block">
+            <div class="doc-sign-line">
+              <img id="docSigImg" src="" alt="" style="display:none" />
+            </div>
+            <div class="doc-sign-label">ลงชื่อ / Signature</div>
+            <div class="doc-sign-name">( <span data-bind="customerNameShort">นาง สาวิตรี อ่อนเลิศศรี</span> )</div>
+          </div>
+          <div class="doc-sign-block">
+            <div class="doc-date-line"><span id="docSignDate">— / — / —</span></div>
+            <div class="doc-sign-label">วันที่ / Date</div>
+          </div>
+        </div>
+
+        <div class="doc-footer-pattern"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="doc-page-info">Page 1 of 1 · Generated by Noble PI Change System · <span id="docPageReq">REQ-2604-A</span> · <span id="docGenTime">23 Apr 2026</span></div>
+      </div>
+    </div>
+
+    <!-- Signature Section -->
+    <div class="sig-section">
+      <h2>เซ็นชื่อเพื่อยืนยัน <span style="color:var(--cement);font-size:14px;font-weight:300">/ Sign to confirm</span></h2>
+      <p class="lede">ใช้นิ้ว/เม้าส์วาดลายเซ็นในกล่องด้านล่าง · หรือเลือก "พิมพ์ชื่อ" เพื่อใช้ลายเซ็นแบบตัวอักษร</p>
+
+      <div class="sig-card">
+        <div>
+          <div class="sig-tabs">
+            <button class="active" id="tabDraw" onclick="setSignMode('draw')">✎ วาดลายเซ็น</button>
+            <button id="tabType" onclick="setSignMode('type')">พิมพ์ชื่อ</button>
+          </div>
+
+          <div id="drawWrap" class="sig-canvas-wrap">
+            <canvas id="sigCanvas" width="800" height="200"></canvas>
+            <div class="sig-hint" id="sigHint">
+              ลากนิ้วหรือเม้าส์ในกรอบนี้เพื่อเซ็น
+              <div class="small">Draw your signature with finger or mouse</div>
+            </div>
+            <div class="sig-baseline">— ลายเซ็นของท่าน · Your signature here</div>
+          </div>
+
+          <div id="typeWrap" class="sig-typed-wrap">
+            <input type="text" id="typedSig" class="sig-typed-input" placeholder="พิมพ์ชื่อของท่านที่นี่" oninput="renderTypedSig()" />
+            <div class="sig-typed-preview" id="typedPreview">—</div>
+          </div>
+        </div>
+
+        <div class="sig-controls">
+          <h4>เครื่องมือ</h4>
+          <button class="sig-btn" onclick="clearSignature()">↺ ล้างลายเซ็น</button>
+          <button class="sig-btn primary" onclick="applySignature()" id="btnApply">✓ ใช้ลายเซ็นนี้</button>
+
+          <div class="apply-toggle">
+            <input type="checkbox" id="applyAll" checked />
+            <label for="applyAll">ใช้กับเอกสารทั้ง 2 ฉบับ</label>
+          </div>
+
+          <div class="sig-legal">🔒 ลายเซ็นดิจิทัลนี้มีผลผูกพันตามกฎหมาย พ.ร.บ.ว่าด้วยธุรกรรมทางอิเล็กทรอนิกส์ พ.ศ. 2544</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="conf-card">
+      <h3>ยืนยันการส่งคำขอ</h3>
+      <div class="conf-row">
+        <input type="checkbox" id="conf1" />
+        <div>
+          ฉันได้ตรวจสอบเอกสารทั้ง 2 ฉบับแล้ว และข้อมูลถูกต้องครบถ้วน
+          <div class="small">I have reviewed both documents and the information is correct</div>
+        </div>
+      </div>
+      <div class="conf-row">
+        <input type="checkbox" id="conf2" />
+        <div>
+          ฉันยินยอมให้บริษัทใช้ข้อมูลตาม PDPA Consent ที่ระบุในเอกสาร
+          <div class="small">I consent to the data use as stated in the PDPA section of the document</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="actions">
+      <button class="btn-outline" onclick="alert('กลับไปหน้า A2 (กรอกข้อมูล)')">← แก้ไขฟอร์ม</button>
+      <button class="btn-outline" onclick="downloadPDF()">⬇ ดาวน์โหลด PDF (preview)</button>
+      <span style="color:var(--cement);font-size:12px;margin-left:auto;margin-right:12px">⏱ Session 22:48 น.</span>
+      <button class="btn-primary" id="btnSubmit" onclick="submitRequest()">✓ ส่งคำขอทั้งหมด (2 REQ)</button>
+    </footer>
+  </main>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal" id="editModal">
+  <div class="modal-card">
+    <h3 id="editTitle">แก้ไขฟิลด์</h3>
+    <div class="modal-sub" id="editSubtitle">Field name</div>
+    <div class="modal-cur">
+      <div style="font-size:11px;color:var(--cement);margin-bottom:6px">ข้อมูลปัจจุบัน / Current value</div>
+      <div id="editCurrent">—</div>
+    </div>
+    <div class="modal-arrow">↓</div>
+    <div id="editFields"></div>
+    <div class="modal-warn">⚠ ลายเซ็นจะถูกล้างหลังบันทึก · ท่านจะต้องเซ็นเอกสารใหม่อีกครั้งเพื่อยืนยัน</div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-primary" onclick="saveEdit()" style="margin:0">บันทึก & อัปเดตเอกสาร →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div id="loadingText">กำลังสร้าง PDF...</div>
+</div>
+
+<script>
+// ===== State =====
+const state = {
+  currentDoc: 1,
+  signature: null,    // dataURL of signature
+  signedAt: null,
+  data: {
+    1: {
+      reqId: "REQ-2604-A",
+      unitNo: "A5A02",
+      project: "Nue Core คูคต",
+      customerName: "นาง สาวิตรี อ่อนเลิศศรี (Mrs. Sawitree Ornlartsri)",
+      customerNameShort: "นาง สาวิตรี อ่อนเลิศศรี",
+      nameTH: "TH:\u00a0 นาง สาวิตรี อ่อนเลิศศรี",
+      nameEN: "EN:\u00a0 Mrs. Sawitree Ornlartsri",
+      idCard: "3-1002-05523-40-8",
+      email: "sawitree.o@example.com",
+      phone: "☐ เพิ่มหมายเลข \u00a0 ☒ เปลี่ยนหมายเลข : 062-555-1289",
+      addrTH: "TH:\u00a0 88/12 ซ.สุขุมวิท 101 แขวงบางจาก เขตพระโขนง กรุงเทพฯ 10260",
+      addrEN: "EN:\u00a0 88/12 Sukhumvit 101, Bang Chak, Phra Khanong, Bangkok 10260"
+    },
+    2: {
+      reqId: "REQ-2604-B",
+      unitNo: "C12A16",
+      project: "Noble Around 33",
+      customerName: "นาง สาวิตรี อ่อนเลิศศรี (Mrs. Sawitree Ornlartsri)",
+      customerNameShort: "นาง สาวิตรี อ่อนเลิศศรี",
+      nameTH: "TH:\u00a0 นาง สาวิตรี อ่อนเลิศศรี",
+      nameEN: "EN:\u00a0 Mrs. Sawitree Ornlartsri",
+      idCard: "3-1002-05523-40-8",
+      email: "sawitree.o@example.com",
+      phone: "☐ เพิ่มหมายเลข \u00a0 ☒ เปลี่ยนหมายเลข : 062-555-1289",
+      addrTH: "TH:\u00a0 88/12 ซ.สุขุมวิท 101 แขวงบางจาก เขตพระโขนง กรุงเทพฯ 10260",
+      addrEN: "EN:\u00a0 88/12 Sukhumvit 101, Bang Chak, Phra Khanong, Bangkok 10260"
+    }
+  }
+};
+
+// ===== Document switching =====
+function switchDoc(n) {
+  state.currentDoc = n;
+  renderDoc();
+  document.getElementById('btnDoc1').style.background = n===1 ? '#fff' : 'transparent';
+  document.getElementById('btnDoc1').style.color = n===1 ? '#000' : '#fff';
+  document.getElementById('btnDoc2').style.background = n===2 ? '#fff' : 'transparent';
+  document.getElementById('btnDoc2').style.color = n===2 ? '#000' : '#fff';
+}
+
+function renderDoc() {
+  const d = state.data[state.currentDoc];
+  document.getElementById('docNum').textContent = state.currentDoc;
+  document.getElementById('docReqId').textContent = `${d.reqId} · ${d.unitNo}`;
+  document.getElementById('docPageReq').textContent = d.reqId;
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    const k = el.dataset.bind;
+    if (d[k] !== undefined) el.textContent = d[k];
+  });
+}
+
+// ===== Signature canvas =====
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false, lastX = 0, lastY = 0, hasDrawn = false;
+
+// Set canvas resolution to match display size for crisp lines
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#000';
+}
+window.addEventListener('load', resizeCanvas);
+window.addEventListener('resize', () => {
+  // preserve drawing on resize
+  const tmp = canvas.toDataURL();
+  resizeCanvas();
+  if (hasDrawn) {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+    img.src = tmp;
+  }
+});
+
+function getCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  if (e.touches) {
+    return {x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top};
+  }
+  return {x: e.clientX - rect.left, y: e.clientY - rect.top};
+}
+
+function startDraw(e) {
+  e.preventDefault();
+  drawing = true;
+  const c = getCoords(e);
+  lastX = c.x; lastY = c.y;
+  if (!hasDrawn) {
+    hasDrawn = true;
+    document.getElementById('sigHint').classList.add('hidden');
+    canvas.classList.add('drawn');
+  }
+}
+function moveDraw(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  const c = getCoords(e);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(c.x, c.y);
+  ctx.stroke();
+  lastX = c.x; lastY = c.y;
+}
+function endDraw() { drawing = false; }
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', moveDraw);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('mouseleave', endDraw);
+canvas.addEventListener('touchstart', startDraw, {passive: false});
+canvas.addEventListener('touchmove', moveDraw, {passive: false});
+canvas.addEventListener('touchend', endDraw);
+
+function clearSignature() {
+  const r = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hasDrawn = false;
+  canvas.classList.remove('drawn');
+  document.getElementById('sigHint').classList.remove('hidden');
+  document.getElementById('typedSig').value = '';
+  document.getElementById('typedPreview').textContent = '—';
+  state.signature = null;
+  document.getElementById('docSigImg').style.display = 'none';
+  document.getElementById('docSignDate').textContent = '— / — / —';
+  toast('ลายเซ็นถูกล้างแล้ว');
+  updateSubmitState();
+}
+
+// ===== Type signature mode =====
+let signMode = 'draw';
+function setSignMode(mode) {
+  signMode = mode;
+  document.getElementById('tabDraw').classList.toggle('active', mode === 'draw');
+  document.getElementById('tabType').classList.toggle('active', mode === 'type');
+  document.getElementById('drawWrap').style.display = mode === 'draw' ? 'block' : 'none';
+  document.getElementById('typeWrap').classList.toggle('active', mode === 'type');
+}
+function renderTypedSig() {
+  const v = document.getElementById('typedSig').value;
+  document.getElementById('typedPreview').textContent = v || '—';
+}
+
+// ===== Apply signature to document =====
+function applySignature() {
+  let dataUrl;
+  if (signMode === 'draw') {
+    if (!hasDrawn) {
+      toast('กรุณาวาดลายเซ็นก่อน', 'error');
+      return;
+    }
+    dataUrl = canvas.toDataURL('image/png');
+  } else {
+    const v = document.getElementById('typedSig').value.trim();
+    if (!v) {
+      toast('กรุณาพิมพ์ชื่อก่อน', 'error');
+      return;
+    }
+    // Render typed name onto a hidden canvas for embedding
+    const tmp = document.createElement('canvas');
+    tmp.width = 800; tmp.height = 200;
+    const tctx = tmp.getContext('2d');
+    tctx.font = "italic 64px 'Brush Script MT', 'Kanit', cursive";
+    tctx.fillStyle = '#000';
+    tctx.textAlign = 'center';
+    tctx.textBaseline = 'middle';
+    tctx.fillText(v, 400, 100);
+    dataUrl = tmp.toDataURL('image/png');
+  }
+  state.signature = dataUrl;
+  state.signedAt = new Date();
+  // Apply to document
+  const img = document.getElementById('docSigImg');
+  img.src = dataUrl;
+  img.style.display = 'block';
+  // Update sign date
+  const d = state.signedAt;
+  const yy = (d.getFullYear() + 543).toString().slice(-2);
+  document.getElementById('docSignDate').textContent =
+    `${String(d.getDate()).padStart(2,'0')} / ${String(d.getMonth()+1).padStart(2,'0')} / 25${yy}`;
+  toast('✓ ใช้ลายเซ็นในเอกสารแล้ว', 'success');
+  updateSubmitState();
+}
+
+// ===== Edit modal =====
+const fieldDefs = {
+  email: {
+    title: "อีเมล",
+    sub: "Email",
+    current: () => state.data[state.currentDoc].email,
+    fields: [{name:'email', label:'Email ใหม่ *', type:'email', value: () => state.data[state.currentDoc].email}],
+    save: (vals) => { state.data[state.currentDoc].email = vals.email; }
+  },
+  phone: {
+    title: "เบอร์โทรศัพท์",
+    sub: "Telephone Number",
+    current: () => state.data[state.currentDoc].phone,
+    fields: [{name:'phone', label:'เบอร์ใหม่ *', type:'tel', value: () => '062-555-1289'}],
+    save: (vals) => { state.data[state.currentDoc].phone = `☐ เพิ่มหมายเลข \u00a0 ☒ เปลี่ยนหมายเลข : ${vals.phone}`; }
+  },
+  idCard: {
+    title: "เลขบัตรประชาชน",
+    sub: "ID Card Number",
+    current: () => state.data[state.currentDoc].idCard,
+    fields: [{name:'idCard', label:'เลขบัตรใหม่ * (13 หลัก)', type:'text', value: () => state.data[state.currentDoc].idCard}],
+    save: (vals) => { state.data[state.currentDoc].idCard = vals.idCard; }
+  },
+  name: {
+    title: "ชื่อ – นามสกุล",
+    sub: "Name – Surname",
+    current: () => `${state.data[state.currentDoc].nameTH}\n${state.data[state.currentDoc].nameEN}`,
+    fields: [
+      {name:'titleTH', label:'คำนำหน้า (TH) *', type:'text', value: () => 'นาง'},
+      {name:'firstTH', label:'ชื่อ (TH) *', type:'text', value: () => 'สาวิตรี'},
+      {name:'lastTH', label:'นามสกุล (TH) *', type:'text', value: () => 'อ่อนเลิศศรี'},
+      {name:'titleEN', label:'Title (EN) *', type:'text', value: () => 'Mrs.'},
+      {name:'firstEN', label:'First name (EN) *', type:'text', value: () => 'Sawitree'},
+      {name:'lastEN', label:'Last name (EN) *', type:'text', value: () => 'Ornlartsri'},
+    ],
+    save: (vals) => {
+      state.data[state.currentDoc].nameTH = `TH:\u00a0 ${vals.titleTH} ${vals.firstTH} ${vals.lastTH}`;
+      state.data[state.currentDoc].nameEN = `EN:\u00a0 ${vals.titleEN} ${vals.firstEN} ${vals.lastEN}`;
+      const fullTH = `${vals.titleTH} ${vals.firstTH} ${vals.lastTH}`;
+      const fullEN = `${vals.titleEN} ${vals.firstEN} ${vals.lastEN}`;
+      state.data[state.currentDoc].customerName = `${fullTH} (${fullEN})`;
+      state.data[state.currentDoc].customerNameShort = fullTH;
+    }
+  },
+  address: {
+    title: "ที่อยู่จัดส่งเอกสาร",
+    sub: "Mailing Address",
+    current: () => `${state.data[state.currentDoc].addrTH}\n${state.data[state.currentDoc].addrEN}`,
+    fields: [
+      {name:'addrTH', label:'ที่อยู่ (TH) * — บรรทัดเดียว', type:'text', value: () => '88/12 ซ.สุขุมวิท 101 แขวงบางจาก เขตพระโขนง กรุงเทพฯ 10260'},
+      {name:'addrEN', label:'Address (EN) * — single line', type:'text', value: () => '88/12 Sukhumvit 101, Bang Chak, Phra Khanong, Bangkok 10260'},
+    ],
+    save: (vals) => {
+      state.data[state.currentDoc].addrTH = `TH:\u00a0 ${vals.addrTH}`;
+      state.data[state.currentDoc].addrEN = `EN:\u00a0 ${vals.addrEN}`;
+    }
+  }
+};
+
+let currentEditField = null;
+
+function openEditModal(field) {
+  const def = fieldDefs[field];
+  if (!def) return;
+  currentEditField = field;
+  document.getElementById('editTitle').textContent = def.title;
+  document.getElementById('editSubtitle').textContent = def.sub;
+  document.getElementById('editCurrent').textContent = def.current();
+  const fc = document.getElementById('editFields');
+  fc.innerHTML = '';
+  def.fields.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="modal-input-label">${f.label}</div>
+      <input type="${f.type}" class="modal-input" id="edit_${f.name}" value="${f.value().replace(/"/g, '&quot;')}" />
+    `;
+    fc.appendChild(wrap);
+  });
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('show');
+  currentEditField = null;
+}
+
+function saveEdit() {
+  if (!currentEditField) return;
+  const def = fieldDefs[currentEditField];
+  const vals = {};
+  def.fields.forEach(f => {
+    vals[f.name] = document.getElementById(`edit_${f.name}`).value;
+  });
+  def.save(vals);
+  // Apply to all docs if multi-unit
+  if (document.getElementById('applyAll').checked) {
+    [1,2].forEach(n => {
+      if (n !== state.currentDoc) {
+        // Apply same change to other doc
+        const orig = state.data[state.currentDoc];
+        Object.keys(orig).forEach(k => {
+          // Only carry over editable fields, not unit/project info
+          if (!['unitNo','project','reqId'].includes(k)) {
+            state.data[n][k] = orig[k];
+          }
+        });
+      }
+    });
+  }
+  // Clear signature (security policy)
+  if (state.signature) {
+    state.signature = null;
+    document.getElementById('docSigImg').style.display = 'none';
+    document.getElementById('docSignDate').textContent = '— / — / —';
+    clearSignatureCanvas();
+    toast('✓ บันทึกแล้ว · ลายเซ็นถูกล้าง กรุณาเซ็นใหม่');
+  } else {
+    toast('✓ บันทึกข้อมูลและอัปเดตเอกสารแล้ว', 'success');
+  }
+  renderDoc();
+  closeModal();
+  updateSubmitState();
+}
+
+function clearSignatureCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hasDrawn = false;
+  canvas.classList.remove('drawn');
+  document.getElementById('sigHint').classList.remove('hidden');
+  document.getElementById('typedSig').value = '';
+  document.getElementById('typedPreview').textContent = '—';
+}
+
+// ===== Submit gating =====
+function updateSubmitState() {
+  const ok = state.signature && document.getElementById('conf1').checked && document.getElementById('conf2').checked;
+  document.getElementById('btnSubmit').disabled = !ok;
+}
+document.getElementById('conf1').addEventListener('change', updateSubmitState);
+document.getElementById('conf2').addEventListener('change', updateSubmitState);
+window.addEventListener('load', updateSubmitState);
+
+// ===== Submit =====
+function submitRequest() {
+  toast('🎉 ส่งคำขอสำเร็จ! REQ-2604-A และ REQ-2604-B', 'success');
+  // In real app: POST to API, navigate to A4
+}
+
+// ===== PDF Download =====
+async function downloadPDF() {
+  showLoading('กำลังสร้าง PDF...');
+  try {
+    const { jsPDF } = window.jspdf;
+
+    // We'll create a multi-page PDF — one page per document
+    // Approach: temporarily render each doc with its data, capture via html2canvas,
+    // embed as image into PDF. This preserves Thai text perfectly.
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 10;
+
+    const docCount = document.getElementById('applyAll').checked ? 2 : 1;
+    const originalDoc = state.currentDoc;
+
+    for (let i = 1; i <= docCount; i++) {
+      switchDoc(i);
+      // small wait to let DOM settle
+      await new Promise(r => setTimeout(r, 100));
+
+      const target = document.getElementById('documentToCapture');
+      const canvasImg = await html2canvas(target, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+        onclone: (clonedDoc) => {
+          // Hide all transient UI elements in the PDF clone (edit buttons, etc.)
+          clonedDoc.querySelectorAll('.edit-btn, .hide-on-export').forEach(el => {
+            el.style.display = 'none';
+          });
+        }
+      });
+      const imgData = canvasImg.toDataURL('image/png');
+      const imgW = pageW - margin * 2;
+      const imgH = (canvasImg.height * imgW) / canvasImg.width;
+
+      if (i > 1) doc.addPage();
+      doc.addImage(imgData, 'PNG', margin, margin, imgW, Math.min(imgH, pageH - margin*2));
+    }
+
+    switchDoc(originalDoc);
+
+    const filename = `PI_Change_Form_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(filename);
+    toast('✓ ดาวน์โหลด PDF สำเร็จ: ' + filename, 'success');
+  } catch (e) {
+    console.error(e);
+    toast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ===== UI helpers =====
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || 'Loading...';
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading').classList.remove('show');
+}
+
+// Close modal on backdrop click
+document.getElementById('editModal').addEventListener('click', (e) => {
+  if (e.target.id === 'editModal') closeModal();
+});
+
+// Initial render
+renderDoc();
+</script>
+
+</body>
+</html>
